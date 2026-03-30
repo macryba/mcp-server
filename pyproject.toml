@@ -1,0 +1,112 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polish-history-mcp-server"
+version = "2.0.0"
+description = "MCP server for Polish history research with multi-domain search and quiz generation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "macryba"}
+]
+keywords = ["mcp", "wikipedia", "polish-history", "quiz", "research"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+
+dependencies = [
+    "fastmcp",
+    "httpx>=0.25.0",
+    "tenacity>=8.2.0",
+    "cachetools>=5.3.0",
+    "beautifulsoup4",
+    "lxml",
+    "requests",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/macryba/mcp-server"
+Repository = "https://github.com/macryba/mcp-server"
+Documentation = "https://github.com/macryba/mcp-server/blob/main/docs/mcp-architecture.md"
+Issues = "https://github.com/macryba/mcp-server/issues"
+
+[project.scripts]
+polish-history-mcp = "server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["services*", "tools*", "models*", "utils*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=services --cov=tools --cov=models --cov=utils --cov-report=term-missing --cov-report=html"
+asyncio_mode = "auto"
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | venv
+)/
+'''
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+exclude = [
+    "venv/*",
+    "build/*",
+    "dist/*",
+    "tests/*",
+]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4"]
+ignore = ["E501"]  # Line length handled by black
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+]

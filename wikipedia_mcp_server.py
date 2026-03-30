@@ -2,11 +2,31 @@
 """
 FastMCP server for Wikipedia search optimized for Polish history
 Exposes search and page extraction tools to Claude Code
+
+**DEPRECATED:** This file is deprecated but maintained for backward compatibility.
+Please use server.py instead.
+The new server provides additional features:
+- Multi-domain search (Wikipedia, IPN, Dzieje, Polona, PSB, PWN)
+- Quiz generation tools
+- Better error handling
+- Improved caching
+
+Migration guide:
+- OLD: python wikipedia_mcp_server.py
+- NEW: python server.py
 """
 
 from fastmcp import FastMCP
 from wikipedia_client import WikipediaClient
 import json
+import warnings
+
+# Issue deprecation warning
+warnings.warn(
+    "wikipedia_mcp_server.py is deprecated. Use server.py instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 
 # Initialize FastMCP server
 mcp = FastMCP("Polish History Wikipedia Search")

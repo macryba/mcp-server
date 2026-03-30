@@ -2,9 +2,25 @@
 """
 Wikipedia search client for Polish history research
 Supports multiple Wikipedia languages and page extraction
+
+**DEPRECATED:** This file is deprecated but maintained for backward compatibility.
+Please use services/domains/wikipedia.py instead.
+For new code, import WikipediaService from services.domains.wikipedia.
+
+Migration guide:
+- OLD: from wikipedia_client import WikipediaClient
+- NEW: from services.domains.wikipedia import WikipediaService
 """
 
 import requests
+import warnings
+
+# Issue deprecation warning
+warnings.warn(
+    "wikipedia_client.py is deprecated. Use services/domains/wikipedia.py instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
 import json
 import re
 from typing import List, Dict, Optional

@@ -2,6 +2,16 @@
 
 A lightweight, FastMCP-based server for searching Wikipedia and other Polish historical sources. Optimized for Polish history research and quiz generation.
 
+## 📚 Documentation
+
+**🆕 New Architecture (v2.0):** The server has been refactored with a modular architecture supporting multi-domain search, content extraction, and quiz generation. See [docs/mcp-architecture.md](docs/mcp-architecture.md) for complete documentation.
+
+**Quick Links:**
+- [Architecture Documentation](docs/mcp-architecture.md) - Complete system architecture and API reference
+- [Migration Guide](docs/mcp-architecture.md#migration-guide) - Upgrading from v1.x to v2.0
+- [Tool Reference](docs/mcp-architecture.md#tool-reference) - All available MCP tools
+- [API Documentation](docs/mcp-architecture.md#api-documentation) - Service layer API
+
 ## 🎯 Purpose
 
 This server provides reliable, CAPTCHA-free access to Polish historical information through Wikipedia's official API, bypassing the complexity and reliability issues of metasearch engines like SearXNG.
@@ -42,17 +52,46 @@ python wikipedia_client.py "Bolesław III Krzywousty" pl
 
 ### 3. Start the MCP Server
 
+**Option A: New Server (Recommended - v2.0)**
+
 ```bash
 # Activate virtual environment
 source venv/bin/activate
 
-# Start server
+# Start new server with multi-domain search and quiz generation
+python server.py
+```
+
+**Option B: Legacy Server (v1.x - Deprecated)**
+
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Start legacy server (Wikipedia-only)
 python wikipedia_mcp_server.py
 ```
 
+> **Note:** The new server (`server.py`) provides multi-domain search, content extraction, and quiz generation. The legacy server (`wikipedia_mcp_server.py`) is deprecated but still functional for backward compatibility.
+
 ### 4. Configure Claude Code
 
+**Option A: New Server (Recommended)**
+
 Add to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "polish-history": {
+      "command": "/home/macryba/mcp-server/venv/bin/python",
+      "args": ["/home/macryba/mcp-server/server.py"]
+    }
+  }
+}
+```
+
+**Option B: Legacy Server**
 
 ```json
 {
@@ -65,7 +104,7 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Restart Claude Code to load the new MCP server.
+Restart Claude Code to load the MCP server.
 
 ## 🛠️ Available Tools
 
