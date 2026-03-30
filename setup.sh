@@ -1,9 +1,9 @@
 #!/bin/bash
-# Setup script for Wikipedia MCP Server with FastMCP
+# Setup script for Polish History MCP Server with FastMCP
 
 set -e
 
-echo "🔧 Setting up Wikipedia MCP Server..."
+echo "🔧 Setting up Polish History MCP Server..."
 
 # Check if Python 3 is installed
 if ! command -v python3 &> /dev/null; then
@@ -31,29 +31,34 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Make scripts executable
-chmod +x wikipedia_client.py
-chmod +x wikipedia_mcp_server.py
+chmod +x server.py
+chmod +x setup.sh
 
 echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "🚀 To start the MCP server, run:"
 echo "   source venv/bin/activate"
-echo "   python wikipedia_mcp_server.py"
+echo "   python server.py"
 echo ""
 echo "📝 To configure Claude Code, add to ~/.claude/settings.json:"
 echo ""
 cat <<'EOF'
 {
   "mcpServers": {
-    "polish-history-wikipedia": {
+    "polish-history": {
       "command": "/home/macryba/mcp-server/venv/bin/python",
-      "args": ["/home/macryba/mcp-server/wikipedia_mcp_server.py"]
+      "args": ["/home/macryba/mcp-server/server.py"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
     }
   }
 }
 EOF
 echo ""
-echo "🔍 Test the search client:"
-echo "   python wikipedia_client.py 'Bolesław III Krzywousty' pl 3"
+echo "🧪 To run tests:"
+echo "   pytest"
+echo ""
+echo "📚 For complete documentation, see docs/mcp-architecture.md"
 echo ""

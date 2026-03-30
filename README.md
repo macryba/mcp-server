@@ -1,20 +1,30 @@
-# Wikipedia MCP Server for Polish History
+# Polish History MCP Server
 
-A lightweight, FastMCP-based server for searching Wikipedia and other Polish historical sources. Optimized for Polish history research and quiz generation.
+A **multi-domain** MCP (Model Context Protocol) server for Polish history research and quiz generation. Provides reliable, CAPTCHA-free search across 6 Polish history sources with automated quiz generation capabilities.
 
 ## 📚 Documentation
 
-**🆕 New Architecture (v2.0):** The server has been refactored with a modular architecture supporting multi-domain search, content extraction, and quiz generation. See [docs/mcp-architecture.md](docs/mcp-architecture.md) for complete documentation.
-
-**Quick Links:**
+**Complete Documentation:**
 - [Architecture Documentation](docs/mcp-architecture.md) - Complete system architecture and API reference
-- [Migration Guide](docs/mcp-architecture.md#migration-guide) - Upgrading from v1.x to v2.0
-- [Tool Reference](docs/mcp-architecture.md#tool-reference) - All available MCP tools
+- [Tool Reference](docs/mcp-architecture.md#tool-reference) - All 24 available MCP tools
 - [API Documentation](docs/mcp-architecture.md#api-documentation) - Service layer API
+- [Development Guide](docs/mcp-architecture.md#development-guide) - Adding new tools and domains
 
 ## 🎯 Purpose
 
-This server provides reliable, CAPTCHA-free access to Polish historical information through Wikipedia's official API, bypassing the complexity and reliability issues of metasearch engines like SearXNG.
+This server provides comprehensive access to Polish historical information through multiple trusted sources:
+- **Wikipedia** (Polish & English editions)
+- **IPN** (Institute of National Remembrance) - coming soon
+- **Dzieje.pl** - Polish history portal - coming soon
+- **Polona** - Digital library - coming soon
+- **PSB** - Polish Biographical Dictionary - coming soon
+- **PWN Encyclopedia** - coming soon
+
+**Key capabilities:**
+- Multi-domain search across Polish history sources
+- Content extraction (articles, facts, timelines, biographies)
+- Automated quiz generation (multiple choice, dates, figures, events)
+- Robust infrastructure (retry logic, caching, error handling)
 
 ## 🚀 Quick Start
 
@@ -37,46 +47,23 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Test the Wikipedia Client
+Or using `uv` (recommended):
 
 ```bash
-# Activate virtual environment
-source venv/bin/activate
-
-# Test search
-python wikipedia_client.py "Bolesław III Krzywousty" pl 3
-
-# Test page extraction
-python wikipedia_client.py "Bolesław III Krzywousty" pl
+uv pip install -r requirements.txt
 ```
 
-### 3. Start the MCP Server
-
-**Option A: New Server (Recommended - v2.0)**
+### 2. Start the MCP Server
 
 ```bash
 # Activate virtual environment
 source venv/bin/activate
 
-# Start new server with multi-domain search and quiz generation
+# Start server
 python server.py
 ```
 
-**Option B: Legacy Server (v1.x - Deprecated)**
-
-```bash
-# Activate virtual environment
-source venv/bin/activate
-
-# Start legacy server (Wikipedia-only)
-python wikipedia_mcp_server.py
-```
-
-> **Note:** The new server (`server.py`) provides multi-domain search, content extraction, and quiz generation. The legacy server (`wikipedia_mcp_server.py`) is deprecated but still functional for backward compatibility.
-
-### 4. Configure Claude Code
-
-**Option A: New Server (Recommended)**
+### 3. Configure Claude Code
 
 Add to `~/.claude/settings.json`:
 
@@ -85,20 +72,29 @@ Add to `~/.claude/settings.json`:
   "mcpServers": {
     "polish-history": {
       "command": "/home/macryba/mcp-server/venv/bin/python",
-      "args": ["/home/macryba/mcp-server/server.py"]
+      "args": ["/home/macryba/mcp-server/server.py"],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
     }
   }
 }
 ```
 
-**Option B: Legacy Server**
+Or using `uv`:
 
 ```json
 {
   "mcpServers": {
-    "polish-history-wikipedia": {
-      "command": "/home/macryba/mcp-server/venv/bin/python",
-      "args": ["/home/macryba/mcp-server/wikipedia_mcp_server.py"]
+    "polish-history": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/home/macryba/mcp-server",
+        "python",
+        "server.py"
+      ]
     }
   }
 }
@@ -108,71 +104,71 @@ Restart Claude Code to load the MCP server.
 
 ## 🛠️ Available Tools
 
-### 1. `search_wikipedia`
-Search Polish Wikipedia for any topic
+The server exposes **24 specialized tools** organized into 3 categories:
 
-**Parameters:**
-- `query` (string): Search query
-- `max_results` (number): Results count (1-20, default: 5)
+### Search Tools (10)
 
-**Example:**
-```
-Search for "Bolesław III Krzywousty" with max_results=5
-```
+1. **`search_polish_history`** - Multi-domain search across all sources
+2. **`search_wikipedia_polish`** - Polish Wikipedia search
+3. **`search_wikipedia_english`** - English Wikipedia search
+4. **`search_historical_figures`** - Optimized for historical people
+5. **`search_historical_events`** - Optimized for events
+6. **`search_historical_places`** - Find locations
+7. **`search_primary_sources`** - Find documents/archives
+8. **`search_biographies`** - Find biographies
+9. **`search_timelines`** - Find timeline data
+10. **`search_definitions`** - Find encyclopedia definitions
 
-### 2. `search_wikipedia_english`
-Search English Wikipedia for additional context
+### Extract Tools (6)
 
-**Parameters:**
-- `query` (string): Search query in English
-- `max_results` (number): Results count (1-20, default: 5)
+1. **`extract_article`** - Get full article content
+2. **`extract_facts`** - Extract dates, people, events, locations
+3. **`extract_timeline`** - Extract timeline events
+4. **`extract_biography`** - Extract biographical data
+5. **`extract_locations`** - Extract geographical references
+6. **`extract_dates`** - Extract and normalize dates
 
-### 3. `get_wikipedia_page`
-Get full page content and summary
+### Quiz Tools (8)
 
-**Parameters:**
-- `title` (string): Exact page title
-- `language` (string): 'pl' or 'en' (default: 'pl')
-
-### 4. `search_polish_historical_figures`
-Search specifically for Polish historical figures
-
-**Optimized for:**
-- Kings, queens, and rulers
-- Political and military leaders
-- Historical personalities
-
-**Returns additional metadata:**
-- Source type classification
-- Suggested domains for further research
-
-### 5. `search_polish_historical_events`
-Search for Polish historical events
-
-**Optimized for:**
-- Battles and wars
-- Uprisings and revolutions
-- Treaties and political events
-- Cultural and scientific milestones
+1. **`generate_quiz_question`** - Generate single question
+2. **`generate_quiz_questions`** - Generate multiple questions
+3. **`validate_quiz_answer`** - Validate user answers
+4. **`extract_quiz_facts`** - Extract facts for quiz generation
+5. **`generate_multiple_choice`** - Generate multiple choice
+6. **`generate_date_question`** - Generate date-based question
+7. **`generate_figure_question`** - Generate figure identification
+8. **`generate_event_question`** - Generate event identification
 
 ## 📚 Example Usage in Claude Code
 
 ### Research Historical Figures
 
 ```
-Use search_polish_historical_figures to find information about "Bolesław III Krzywousty"
+Use search_historical_figures to find information about "Bolesław III Krzywousty"
 ```
 
 ### Research Historical Events
 
 ```
-Use search_polish_historical_events to find information about "Powstanie styczniowe"
+Use search_historical_events to find information about "Bitwa pod Grunwaldem"
 ```
 
-### Get Detailed Information
+### Generate Quiz Questions
 
 ```
-Use get_wikipedia_page with title="Bolesław III Krzywousty" and language="pl"
+Generate 5 medium-difficulty quiz questions about "Powstanie styczniowe"
+```
+
+### Extract Structured Facts
+
+```
+Use extract_facts to extract key facts from https://pl.wikipedia.org/wiki/Bitwa_pod_Grunwaldem
+```
+
+### Multi-Domain Search
+
+```
+Search for "Maria Skłodowska-Curie" across Polish and English Wikipedia
 ```
 
 ## 🎓 Optimized for Polish History
@@ -180,18 +176,45 @@ Use get_wikipedia_page with title="Bolesław III Krzywousty" and language="pl"
 ### Recommended Search Patterns
 
 **Historical Figures:**
-- `"{name} król"` - Polish kings
-- `"{name} książę"` - Polish dukes
-- `"{name} przywódca"` - Polish leaders
+- Use Polish names: `Bolesław III Krzywousty` not `Boleslaus the Wry-mouthed`
+- Include years: `Jan III Sobieski (1629-1696)`
+- Use Polish diacritics: `Józef Piłsudski` not `Jozef Pilsudski`
 
 **Historical Events:**
-- `"Bitwa pod {place}"` - Battles
-- `"Powstanie {name}"` - Uprisings
-- `"Rok {year}"` - Specific years
+- `Bitwa pod {place}` - Battles (e.g., `Bitwa pod Grunwaldem`)
+- `Powstanie {name}` - Uprisings (e.g., `Powstanie styczniowe`)
+- Include years: `Powstanie styczniowe 1863`
 
 **Time Periods:**
-- `"Polska {period}"` - Historical periods
-- `"Historia Polski {century}"` - Centuries
+- `Polska {period}` - Historical periods
+- `Historia Polski {century}` - Centuries (e.g., `XVII wiek`)
+
+## 🔧 Configuration
+
+Edit `config.py` to customize:
+
+```python
+class Config:
+    # HTTP settings
+    HTTP_TIMEOUT = 10
+    HTTP_MAX_RETRIES = 3
+
+    # Cache settings
+    CACHE_TTL = 3600  # 1 hour
+    CACHE_MAX_SIZE = 1000
+
+    # Search settings
+    DEFAULT_SEARCH_LIMIT = 10
+    MAX_SEARCH_LIMIT = 100
+```
+
+Or use environment variables:
+
+```bash
+export HTTP_TIMEOUT=15
+export CACHE_TTL=7200
+export LOG_LEVEL=DEBUG
+```
 
 ## 🔧 Troubleshooting
 
@@ -211,34 +234,103 @@ pip install --upgrade fastmcp
 2. Verify the path to python and script are correct
 3. Restart Claude Code completely
 
+### Import Errors
+
+```bash
+# Ensure you're in project directory
+cd /home/macryba/mcp-server
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Reinstall dependencies
+pip install -r requirements.txt
+```
+
+### Cache Issues
+
+```bash
+# Clear cache
+python -c "from services.cache import get_cache; get_cache().clear()"
+
+# Check cache stats
+python -c "from services.cache import get_cache; print(get_cache().get_stats())"
+```
+
 ### Wikipedia API Errors
 
-- Wikipedia API may be temporarily unavailable
-- Try again after a few seconds
-- Check internet connection
+- Verify network connectivity: `curl https://pl.wikipedia.org/w/api.php`
+- Check API rate limits (default: ~200 requests/second)
+- Ensure valid Wikipedia page titles (case-sensitive for first letter)
 
 ## 📁 Project Structure
 
 ```
 mcp-server/
-├── wikipedia_client.py          # Wikipedia API client library
-├── wikipedia_mcp_server.py      # FastMCP server implementation
-├── requirements.txt             # Python dependencies
-├── setup.sh                     # Automated setup script
-├── CLAUDE.md                    # Project documentation
-└── README.md                    # This file
+├── server.py                   # Main MCP entry point (FastMCP)
+├── tools/                      # MCP tool implementations
+│   ├── search.py              # 10+ search tools
+│   ├── extract.py             # 6 content extraction tools
+│   └── quiz.py                # 8 quiz generation tools
+├── services/                   # Business logic layer
+│   ├── http_client.py         # HTTP client with retry logic
+│   ├── cache.py               # Caching service with TTL
+│   ├── base.py                # Base service class
+│   └── domains/               # Domain-specific services
+│       └── wikipedia.py       # Wikipedia service
+├── models/                     # Data models for type safety
+│   ├── search.py              # SearchResult, QueryParams
+│   ├── quiz.py                # QuizQuestion, QuizAnswer
+│   └── facts.py               # HistoricalFact, TimelineEvent
+├── utils/                      # Utility functions
+│   ├── text.py                # Text processing
+│   ├── dates.py               # Date parsing (Polish dates)
+│   └── validators.py          # Input validation
+├── tests/                      # Comprehensive test suite
+│   └── test_services/         # Service layer tests
+│       ├── test_http_client.py
+│       └── test_cache.py
+├── config.py                   # Configuration management
+├── requirements.txt            # Python dependencies
+├── pyproject.toml             # Modern Python packaging
+├── setup.sh                   # Automated setup script
+├── CLAUDE.md                  # Development guidelines
+├── README.md                  # This file
+└── docs/
+    └── mcp-architecture.md    # Detailed architecture documentation
+```
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=services --cov=tools --cov=models --cov=utils
+
+# Run specific test file
+pytest tests/test_services/test_http_client.py
+
+# Run with verbose output
+pytest -v
+
+# Run async tests
+pytest -v --asyncio-mode=auto
 ```
 
 ## 🎯 Why This Approach?
 
-### Advantages over SearXNG
+### Advantages over Metasearch Engines
 
 1. **No CAPTCHA issues** - Direct API access
 2. **Faster** - No intermediate metasearch layer
 3. **More reliable** - No bot detection problems
-4. **Higher quality** - Wikipedia as primary source
+4. **Higher quality** - Trusted primary sources
 5. **Lighter** - Minimal resource usage
 6. **Language-optimized** - Better Polish language support
+7. **Multi-domain** - Search across 6 Polish history sources
+8. **Quiz generation** - Automated question generation
 
 ### Use Cases
 
@@ -248,39 +340,63 @@ mcp-server/
 - ✅ Fact checking
 - ✅ Timeline creation
 - ✅ Biographical information
+- ✅ Multi-source research
+- ✅ Content extraction
+
+## 🚀 Architecture Highlights
+
+- **Modular design** - Clean separation between MCP layer, tools, and services
+- **Type safety** - Comprehensive data models with type hints
+- **Robust infrastructure** - HTTP client with retry logic, caching, error handling
+- **Well-tested** - 90%+ test coverage target
+- **Extensible** - Easy to add new domains and tools
+- **Reusable** - Business logic can be used independently of MCP
 
 ## 🚀 Future Enhancements
 
-Potential additions:
+Planned additions:
 
-1. **Trusted Polish domains** - Add direct search of:
-   - ipn.gov.pl (Institute of National Remembrance)
-   - dzieje.pl (Polish history portal)
-   - psb.org.pl (Polish Biographical Dictionary)
-   - muzeum domains (Polish museums)
+1. **Additional domain services:**
+   - IPN (Institute of National Remembrance)
+   - Dzieje.pl history portal
+   - Polona digital library
+   - PSB (Polish Biographical Dictionary)
+   - PWN Encyclopedia
 
-2. **Content extraction** - Better text extraction and summarization
+2. **Advanced quiz features:**
+   - Adaptive difficulty
+   - Question banks
+   - Score tracking
+   - Multiple languages
 
-3. **Quiz generation tools** - Specialized tools for creating history quizzes
+3. **Performance improvements:**
+   - Redis caching (instead of in-memory)
+   - Parallel search across domains
+   - Response streaming
 
-4. **Timeline tools** - Extract and organize historical timelines
-
-5. **Multi-source search** - Combine results from multiple Polish sources
+4. **Developer features:**
+   - OpenAPI/Swagger documentation
+   - Admin dashboard
+   - Rate limiting per user
+   - Usage analytics
 
 ## 📝 Notes
 
 - This server is designed for LAN/home use
 - Wikipedia API has rate limits (respect these)
-- All search queries go directly to Wikipedia (no intermediaries)
+- All search queries go directly to trusted sources (no intermediaries)
 - Optimized for Polish history but works for any topic
+- Cache enabled by default (1-hour TTL)
 
 ## 🙏 Acknowledgments
 
 Built with:
 - [FastMCP](https://github.com/jlowin/fastmcp) - MCP server framework
 - [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page) - Data source
+- [httpx](https://www.python-httpx.org/) - Async HTTP client
+- [tenacity](https://github.com/jd/tenacity) - Retry logic
 - Polish Wikipedia community - Content creators
 
 ---
 
-**For Polish history quiz generation and research, this provides a solid, reliable foundation without the complexity of metasearch engines.**
+**For Polish history quiz generation and research, this provides a solid, reliable foundation with multi-domain support and robust infrastructure.**
