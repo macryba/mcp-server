@@ -4,7 +4,7 @@ Quiz generation tools for Polish history
 Provides tools to generate quiz questions, validate answers, and extract quiz facts
 """
 
-from tools.search import search_wikipedia, search_historical_figures, search_historical_events
+from tools.search import search_wikipedia
 from tools.extract import extract_facts, extract_article
 from models.quiz import QuizQuestion, QuestionType, DifficultyLevel
 from typing import List, Dict, Any

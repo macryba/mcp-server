@@ -2,24 +2,178 @@
 
 Complete reference for all search tools available in the Polish History MCP server.
 
+## Quick Start: AI Agent Workflow
+
+**For AI Agents: This MCP server supports a 3-step intelligent search workflow:**
+
+1. **Quick Basic Research** → `search_wikipedia` for fast overviews
+2. **Learn Domain Specializations** → `list_domains` to understand available sources
+3. **Targeted Deep Search** → `search_polish_history` with specific domains
+
+**Example:**
+```python
+# Step 1: Quick Wikipedia lookup
+basic_info = await search_wikipedia("Powstanie warszawskie")
+
+# Step 2: If user needs primary sources, learn what's available
+domains = await list_domains()
+# → Learn that IPN and Polona specialize in WWII primary sources
+
+# Step 3: Targeted search with appropriate domains
+deep_research = await search_polish_history(
+    "Powstanie warszawskie dokumenty",
+    domains=["ipn", "polona"]  # Use specialized sources
+)
+```
+
+**See "Recommended Workflow for AI Agents" section below for detailed guidance.**
+
 ## Overview
 
-The Polish History MCP server provides **10 search tools** optimized for historical research across Polish Wikipedia, with planned support for IPN, Dzieje.pl, and other Polish historical sources.
+The Polish History MCP server provides **3 core search tools** for historical research across 7 Polish historical sources. The tools follow a simple, powerful design that lets AI agents enhance queries naturally rather than providing specialized wrappers for every search type.
+
+## Philosophy
+
+**Why only 3 search tools?**
+
+Modern AI agents are capable of formulating context-appropriate search queries. Rather than providing specialized tools like `search_historical_figures` or `search_historical_events`, we provide two flexible search tools and let the agent enhance queries as needed:
+
+```
+User: "Find Polish kings from 17th century"
+Agent: → search_polish_history("król Polski XVII wiek")
+```
+
+This approach:
+- **Reduces tool bloat** - Fewer tools to learn and maintain
+- **Increases flexibility** - Agent can adapt search strategy to context
+- **Improves performance** - Fewer tool options to consider
+- **Simplifies architecture** - Clean separation of concerns
+
+## Recommended Workflow for AI Agents
+
+This MCP server is designed to support an intelligent, progressive search workflow:
+
+### Step 1: Quick Basic Research
+**Tool:** `search_wikipedia`
+**Use when:** You need basic information, general overviews, or quick facts
+**Example:**
+```python
+# User asks about a historical topic
+results = await search_wikipedia("Bitwa pod Grunwaldem")
+# Returns: Wikipedia overview - good for basic facts
+```
+
+### Step 2: Assess Need for Specialized Sources
+**Question:** Does the user need specialized, authoritative, or comprehensive information?
+- **Need depth:** Primary sources, archival documents, academic research
+- **Need specificity:** Regional history, specific periods, specialized topics
+- **Need diversity:** Multiple perspectives beyond Wikipedia
+
+If **YES** → Proceed to Step 3
+
+### Step 3: Learn Available Domains
+**Tool:** `list_domains`
+**Purpose:** Understand what sources are available and their specializations
+**Example:**
+```python
+# Learn what domains are available
+domains = await list_domains(include_unimplemented=False)
+
+# Analyze the results to find relevant domains:
+# - IPN: specializes in 20th century, WWII, communism
+# - Polona: primary sources, documents, archival materials
+# - Dzieje.pl: popular history, magazines, articles
+# - Wikipedia: general knowledge (always available)
+```
+
+### Step 4: Targeted Domain-Specific Search
+**Tool:** `search_polish_history` with specific `domains` parameter
+**Purpose:** Get highly relevant results from the most appropriate sources
+**Example:**
+```python
+# User wants primary sources about World War II
+results = await search_polish_history(
+    "II wojna światowa dokumenty",
+    domains=["ipn", "polona"],  # Target domains that specialize in this
+    limit=10
+)
+
+# User wants educational content about medieval kings
+results = await search_polish_history(
+    "król Polski średniowiecze",
+    domains=["wikipedia", "dzieje", "gwo"],  # Educational + general sources
+    limit=5
+)
+```
+
+### Workflow Summary
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ User Request: "Tell me about the Warsaw Uprising"          │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 1: Quick Wikipedia lookup                             │
+│ search_wikipedia("Powstanie warszawskie")                  │
+│ → Good basic overview, but user wants primary sources      │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 2: User wants primary sources and archival documents   │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3: Learn domain specializations                       │
+│ list_domains()                                             │
+│ → Learn IPN specializes in WWII, Polona has archives       │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 4: Targeted search with appropriate domains            │
+│ search_polish_history(                                     │
+│   "Powstanie warszawskie dokumenty",                      │
+│   domains=["ipn", "polona"]                               │
+│ )                                                         │
+│ → Highly relevant primary sources from experts            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Points for AI Agents
+
+1. **Start simple:** Use `search_wikipedia` first for basic information
+2. **Progress intelligently:** If user needs depth, use `list_domains` to learn about specialized sources
+3. **Search strategically:** Use `search_polish_history` with specific domains based on learned specializations
+4. **Think about user intent:** Different questions require different sources
+   - Quick facts → Wikipedia
+   - Academic research → Polona + IPN
+   - Educational content → GWO + SuperKid + Dzieje
+   - Popular history → Dzieje + Przystanek Historia
+
+Modern AI agents are capable of formulating context-appropriate search queries. Rather than providing specialized tools like `search_historical_figures` or `search_historical_events`, we provide two flexible search tools and let the agent enhance queries as needed:
+
+```
+User: "Find Polish kings from 17th century"
+Agent: → search_polish_history("król Polski XVII wiek")
+```
+
+This approach:
+- **Reduces tool bloat** - Fewer tools to learn and maintain
+- **Increases flexibility** - Agent can adapt search strategy to context
+- **Improves performance** - Fewer tool options to consider
+- **Simplifies architecture** - Clean separation of concerns
 
 ## Search Tools Reference Table
 
 | Tool Name | Short Description | Input Schema | Output Schema |
 |-----------|------------------|--------------|---------------|
-| `search_polish_history` | Multi-domain search across Polish Wikipedia and future Polish sources | `query: str`<br>`domains: List[str] = None`<br>`limit: int = 10` | `List[Dict]` with:<br>`- title: str`<br>`- url: str`<br>`- snippet: str`<br>`- source: str`<br>`- relevance_score: float`<br>`- metadata: Dict` |
+| `search_polish_history` | Multi-domain search across 7 Polish historical sources | `query: str`<br>`domains: List[str] = None`<br>`limit: int = 10` | `List[Dict]` with:<br>`- title: str`<br>`- url: str`<br>`- snippet: str`<br>`- source: str`<br>`- relevance_score: float`<br>`- metadata: Dict` |
 | `search_wikipedia` | Search Polish Wikipedia for historical topics | `query: str`<br>`max_results: int = 5` | `str(JSON)` with search results array<br>Each result: title, snippet, url, source, relevance_score, metadata |
-| `search_historical_figures` | Optimized search for Polish kings, queens, leaders, historical personalities | `query: str`<br>`period: str = None` (e.g., "XVII wiek", "1945-1989") | `str(JSON)` with enhanced results including:<br>`- source_type: 'Polish historical figure'`<br>`- suggested_domains: ['pl.wikipedia.org', 'ipn.gov.pl', 'dzieje.pl']` |
-| `search_historical_events` | Optimized for battles, uprisings, treaties, historical events | `query: str`<br>`date_range: str = None` (e.g., "1939-1945") | `str(JSON)` with enhanced results including:<br>`- source_type: 'Polish historical event'`<br>`- suggested_domains: ['pl.wikipedia.org', 'dzieje.pl', 'ipn.gov.pl', 'encyklopedia.pwn.pl']` |
-| `search_historical_places` | Find historical locations and places | `query: str`<br>`region: str = None` | `str(JSON)` with results including:<br>`- source_type: 'Historical place'` |
-| `search_primary_sources` | Search for documents, archives, newspapers | `query: str`<br>`source_type: str = None` ("documents", "archives", "newspapers") | `str(JSON)` with results including:<br>`- source_type: 'Primary source'`<br>`- suggested_domains: ['polona.pl', 'ipn.gov.pl', 'pl.wikipedia.org']` |
-| `search_biographies` | Find biographical entries and life stories | `query: str`<br>`profession: str = None` | `str(JSON)` with results including:<br>`- source_type: 'Biography'`<br>`- suggested_domains: ['pl.wikipedia.org']` |
-| `search_timelines` | Search for chronological data and timelines | `topic: str`<br>`period: str = None` | `str(JSON)` with results including:<br>`- source_type: 'Timeline data'` |
-| `search_definitions` | Search encyclopedic definitions and explanations | `term: str`<br>`domain: str = None` ("pwn", "wikipedia") | `str(JSON)` with results including:<br>`- source_type: 'Definition'`<br>`- suggested_domains: ['encyklopedia.pwn.pl', 'pl.wikipedia.org']` |
-| `server_info` | Get server capabilities, version, supported domains | `None` | `str(JSON)` with:<br>`- name: str`<br>`- version: str`<br>`- capabilities: Dict`<br>`- supported_domains: List[str]` |
+| `list_domains` | Get information about available historical source domains | `include_unimplemented: bool = False` | `str(JSON)` with domain information including:<br>`- name: str`<br>`- base_url: str`<br>`- description: str`<br>`- capabilities: Dict`<br>`- implementation_status: str` |
 
 ## Common Output Schema Structure
 
@@ -45,44 +199,65 @@ All search tools return results in this base format (with tool-specific enhancem
 
 ## Tool Categories
 
-### General Search Tools
-- **`search_polish_history`** - Primary multi-domain search tool
-- **`search_wikipedia_polish`** - Direct Polish Wikipedia search
-- **`search_wikipedia_english`** - Direct English Wikipedia search
-- **`server_info`** - Server metadata and capabilities
+### Multi-Domain Search
+- **`search_polish_history`** - Primary search tool across all 7 implemented Polish historical sources
 
-### Specialized Search Tools
-- **`search_historical_figures`** - Optimized for people (kings, queens, leaders)
-- **`search_historical_events`** - Optimized for events (battles, uprisings, treaties)
-- **`search_historical_places`** - Find geographical locations
+### Wikipedia Search
+- **`search_wikipedia`** - Direct Polish Wikipedia search for quick lookups
 
-### Research Tools
-- **`search_biographies`** - Biographical entries and life stories
-- **`search_primary_sources`** - Documents, archives, newspapers
-- **`search_timelines`** - Chronological data and timelines
-- **`search_definitions`** - Encyclopedic definitions
+### Informational
+- **`list_domains`** - Discover available historical sources and their capabilities
+
+## Implemented Domains
+
+The `search_polish_history` tool searches across these 7 implemented domains:
+
+1. **Wikipedia** (Polish) - API search
+2. **Dzieje.pl** - Web scraping
+3. **Polona** (National Library) - API search
+4. **SuperKid** - Web scraping
+5. **IPN** (Edukacja IPN) - Web scraping
+6. **Przystanek Historia** - Web scraping
+7. **GWO** (Historia) - Web scraping
 
 ## Usage Examples
 
-### Basic Search
+### Basic Multi-Domain Search
 ```python
-# Search Polish Wikipedia
-results = await search_wikipedia_polish("Bolesław III Krzywousty", 10)
+# Search all implemented domains
+results = await search_polish_history("Bitwa pod Grunwaldem")
 
-# Multi-domain search
-results = await search_polish_history("Bitwa pod Grunwaldem", ["wikipedia_pl", "wikipedia_en"], 5)
+# Search specific domains
+results = await search_polish_history("Powstanie styczniowe", ["wikipedia", "ipn"], 5)
 ```
 
-### Specialized Search
+### Wikipedia-Only Search
 ```python
-# Historical figure with period
-results = await search_historical_figures("Jan Sobieski", "XVII wiek")
+# Quick Wikipedia lookup
+results = await search_wikipedia("Bolesław III Krzywousty")
+```
 
-# Historical event with date range
-results = await search_historical_events("Powstanie styczniowe", "1863-1865")
+### Context-Enhanced Search
+The AI agent naturally enhances queries based on context:
 
-# Primary sources
-results = await search_primary_sources("Konstytucja 3 maja", "documents")
+```python
+# User: "Find Polish kings from 17th century"
+results = await search_polish_history("król Polski XVII wiek")
+
+# User: "Primary sources about May 3 Constitution"
+results = await search_polish_history("Konstytucja 3 maja dokumenty źródła")
+
+# User: "Battles involving Jan III Sobieski"
+results = await search_polish_history("bitwy Jan III Sobieski")
+```
+
+### Domain Discovery
+```python
+# List all implemented domains
+domains = await list_domains(include_unimplemented=False)
+
+# Get information about specific domain capabilities
+all_domains = await list_domains(include_unimplemented=True)
 ```
 
 ## Best Practices
@@ -91,33 +266,47 @@ results = await search_primary_sources("Konstytucja 3 maja", "documents")
 - **Use Polish names**: "Bolesław III Krzywousty" not "Boleslaus the Wry-mouthed"
 - **Include years**: "Bitwa pod Grunwaldem 1410"
 - **Use Polish diacritics**: "Powstanie styczniowe"
-- **Add context**: Include historical periods for better results
+- **Add context terms**: Include historical periods, source types, or keywords
+  - "król" for kings, "bitwa" for battles, "dokumenty" for primary sources
 
 ### Tool Selection
-- **Start with specialized tools**: `search_historical_figures` for people, `search_historical_events` for events
-- **Use English Wikipedia for**: International context, English-language sources
-- **Primary sources**: Use `search_primary_sources` for documents and archives
+- **Use `search_polish_history` for**: Comprehensive research across multiple Polish historical sources
+- **Use `search_wikipedia` for**: Quick Wikipedia lookups when multi-domain search isn't needed
+- **Use `list_domains` for**: Discovering available sources and their capabilities
 
 ### Domain Selection
-- **Current support**: Wikipedia (Polish & English)
-- **Coming soon**: IPN, Dzieje.pl, Polona, PSB, PWN Encyclopedia
-- **Trusted domains**: gov.pl, edu.pl, established Polish historical sources
+- **Default**: Let the tool search all implemented domains for comprehensive results
+- **Specific research**: Target domains by expertise:
+  - `["polona", "ipn"]` for primary sources and documents
+  - `["wikipedia", "dzieje"]` for general historical overviews
+  - `["ipn", "przystanek_historia"]` for 20th century history
+
+### Query Enhancement Strategies
+Instead of specialized tools, enhance queries naturally:
+
+| Research Goal | Query Enhancement |
+|---------------|-------------------|
+| Historical figures | Add "król", "książę", "władca" or name + period |
+| Events | Add "bitwa", "powstanie", "traktat", date ranges |
+| Primary sources | Add "dokumenty", "archiwa", "źródła", "manuskrypty" |
+| Places | Add "miasto", "zamek", "miejsce historyczne" |
+| Biographies | Add "biografia", "życiorys", "postać" |
 
 ## Response Formats
 
 ### JSON String Response
-Most tools return `str(JSON)` for MCP protocol compatibility:
+`search_wikipedia` and `list_domains` return `str(JSON)` for MCP protocol compatibility:
 ```python
 # Parse response
 import json
-results = json.loads(await search_wikipedia_polish("query"))
+results = json.loads(await search_wikipedia("Bolesław III Krzywousty"))
 ```
 
 ### Direct List Response
 `search_polish_history` returns `List[Dict]` directly:
 ```python
 # Direct usage
-results = await search_polish_history("query")
+results = await search_polish_history("Bitwa pod Grunwaldem")
 for result in results:
     print(result['title'], result['url'])
 ```

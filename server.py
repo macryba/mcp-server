@@ -34,6 +34,10 @@ async def search_polish_history(query: str, domains: list = None, limit: int = 1
     """
     Search trusted Polish history sources and return matching pages
 
+    RECOMMENDED WORKFLOW: After using list_domains to understand domain specializations, use this tool
+    with specific domains for targeted searches. For example, if searching for primary sources about
+    World War II, you might specify domains=["ipn", "polona"] after learning they specialize in that area.
+
     Currently implemented domains:
     - wikipedia (Polish Wikipedia) - ✅ available (API search)
     - dzieje (Dzieje.pl) - ✅ available (web scraping)
@@ -66,10 +70,14 @@ async def search_wikipedia(query: str, max_results: int = 5) -> str:
     """
     Search Polish Wikipedia for historical information
 
+    RECOMMENDED WORKFLOW: Use this tool first for quick lookups. If you need more specialized
+    or comprehensive information, call list_domains to learn about available domains, then use
+    search_polish_history with specific domains.
+
     Best for:
-    - General Polish history topics
-    - Historical figures (kings, queens, leaders)
-    - Historical events (battles, uprisings, treaties)
+    - Quick basic information about Polish history topics
+    - General overviews of historical figures, events, places
+    - Initial research before diving into specialized sources
 
     Args:
         query: Search query (e.g., "Bolesław III Krzywousty")
@@ -87,106 +95,132 @@ async def search_wikipedia(query: str, max_results: int = 5) -> str:
 
 
 @mcp.tool()
-async def search_historical_figures(query: str, period: str = None) -> str:
+async def usage_guide() -> str:
     """
-    Search Polish Wikipedia specifically for historical figures
+    Get detailed usage guide and workflow recommendations for this MCP server
 
-    Optimized for searching Polish kings, queens, leaders, and historical personalities.
-
-    Args:
-        query: Name or description of historical figure
-        period: Optional time period (e.g., "XVII wiek", "1945-1989")
+    RECOMMENDED: Call this tool after server_info for comprehensive workflow guidance.
+    This tool provides detailed examples and best practices for effective use of
+    Polish history search tools.
 
     Returns:
-        JSON string with relevant biographical information and suggested sources
+        JSON string with detailed usage guide, examples, and best practices
     """
     try:
-        results = await search.search_historical_figures(query, period)
-        return results
+        guide = {
+            'server_name': 'Polskie Narzędzia Historyczne',
+            'version': SERVER_VERSION,
+            'introduction': 'This MCP server provides intelligent, multi-domain search across 7 Polish historical sources. The tools are designed for progressive research: start quick, go deep when needed.',
+            'core_workflow': {
+                'title': '3-Step Progressive Research Workflow',
+                'philosophy': 'Start with broad Wikipedia search, then target specialized sources based on domain expertise',
+                'steps': [
+                    {
+                        'step': 1,
+                        'name': 'Quick Basic Research',
+                        'tool': 'search_wikipedia',
+                        'when_to_use': 'Basic information, general overviews, quick facts',
+                        'why': 'Fast, comprehensive, good starting point',
+                        'examples': [
+                            'search_wikipedia("Bolesław III Krzywousty")',
+                            'search_wikipedia("Powstanie styczniowe")',
+                            'search_wikipedia("Zamek Królewski Warszawa")'
+                        ]
+                    },
+                    {
+                        'step': 2,
+                        'name': 'Assess Research Depth Needed',
+                        'decision_points': [
+                            'Does user need primary sources or archival documents?',
+                            'Does user need specialized academic research?',
+                            'Does user need multiple perspectives beyond Wikipedia?',
+                            'Is this a specialized topic (e.g., WWII, communism)?'
+                        ],
+                        'action': 'If YES to any → Proceed to Step 3'
+                    },
+                    {
+                        'step': 3,
+                        'name': 'Learn Domain Specializations',
+                        'tool': 'list_domains',
+                        'when_to_use': 'Before targeted searches, to understand source expertise',
+                        'why': 'Different domains specialize in different periods and types of content',
+                        'examples': [
+                            'list_domains() # Returns all domain specializations',
+                            '# Learn: IPN → WWII, communism, 20th century',
+                            '# Learn: Polona → Primary sources, archival documents',
+                            '# Learn: Dzieje.pl → Popular history, articles'
+                        ]
+                    },
+                    {
+                        'step': 4,
+                        'name': 'Targeted Domain-Specific Search',
+                        'tool': 'search_polish_history with domains parameter',
+                        'when_to_use': 'After learning domain specializations for targeted research',
+                        'why': 'Get highly relevant results from expert sources',
+                        'examples': [
+                            '# Primary sources about WWII',
+                            'search_polish_history("II wojna światowa dokumenty", domains=["ipn", "polona"])',
+                            '',
+                            '# Educational content about medieval history',
+                            'search_polish_history("król Polski średniowiecze", domains=["wikipedia", "dzieje", "gwo"])',
+                            '',
+                            '# Comprehensive search across all sources',
+                            'search_polish_history("Powstanie warszawskie") # No domains = all'
+                        ]
+                    }
+                ]
+            },
+            'domain_specializations': {
+                'description': 'Quick reference for domain expertise (see list_domains for full details)',
+                'domains': [
+                    {'name': 'wikipedia', 'best_for': 'General knowledge, quick overviews', 'examples': 'Kings, battles, basic facts'},
+                    {'name': 'ipn', 'best_for': '20th century, WWII, communism', 'examples': 'WWII documents, communist era, post-war Poland'},
+                    {'name': 'polona', 'best_for': 'Primary sources, archival documents', 'examples': 'Historical manuscripts, old newspapers, scans'},
+                    {'name': 'dzieje', 'best_for': 'Popular history, articles', 'examples': 'History magazines, educational content'},
+                    {'name': 'gwo', 'best_for': 'Educational materials', 'examples': 'School-level history, educational resources'},
+                    {'name': 'przystanek_historia', 'best_for': '20th century popular history', 'examples': 'WWII, communism, popular history articles'},
+                    {'name': 'superkid', 'best_for': 'Educational content for youth', 'examples': 'School history, educational materials'}
+                ]
+            },
+            'query_optimization_tips': {
+                'polish_language': 'Use Polish names and diacritics: "Bolesław III" not "Boleslaw III"',
+                'add_context_terms': 'Include relevant keywords: "król" (king), "bitwa" (battle), "dokumenty" (documents)',
+                'specify_periods': 'Add time periods: "XVII wiek" (17th century), "1939-1945"',
+                'source_types': 'Add source type keywords: "dokumenty", "biografia", "życiorys"'
+            },
+            'best_practices': [
+                'Always start with search_wikipedia for basic information',
+                'Use list_domains before targeted searches to understand source expertise',
+                'Specify domains in search_polish_history for better relevance',
+                'Use Polish language and diacritics for best results',
+                'Add context keywords based on research goals',
+                'Start broad, then narrow down based on initial results'
+            ],
+            'example_research_scenarios': [
+                {
+                    'scenario': 'User wants detailed information about the Warsaw Uprising',
+                    'workflow': [
+                        'search_wikipedia("Powstanie warszawskie") # Basic overview',
+                        '# User wants primary sources →',
+                        'list_domains() # Learn IPN and Polona specialize in this',
+                        'search_polish_history("Powstanie warszawskie dokumenty", domains=["ipn", "polona"])'
+                    ]
+                },
+                {
+                    'scenario': 'User needs educational content about Polish kings',
+                    'workflow': [
+                        'search_wikipedia("król Polski") # Basic info',
+                        '# User wants educational materials →',
+                        'list_domains() # Learn GWO and SuperKid have educational content',
+                        'search_polish_history("król Polski średniowiecze", domains=["wikipedia", "gwo", "superkid"])'
+                    ]
+                }
+            ]
+        }
+
+        return str(guide)
     except Exception as e:
-        logger.error(f"Error in search_historical_figures: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def search_historical_events(query: str, date_range: str = None) -> str:
-    """
-    Search Polish Wikipedia for historical events
-
-    Optimized for searching battles, uprisings, treaties, and historical events.
-
-    Args:
-        query: Event name or description (e.g., "Powstanie styczniowe", "Bitwa pod Grunwaldem")
-        date_range: Optional date range (e.g., "1939-1945")
-
-    Returns:
-        JSON string with event information and suggested sources
-    """
-    try:
-        results = await search.search_historical_events(query, date_range)
-        return results
-    except Exception as e:
-        logger.error(f"Error in search_historical_events: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def search_historical_places(query: str, region: str = None) -> str:
-    """
-    Search for historical places and locations
-
-    Args:
-        query: Place name or description
-        region: Optional region filter
-
-    Returns:
-        JSON string with place information
-    """
-    try:
-        results = await search.search_historical_places(query, region)
-        return results
-    except Exception as e:
-        logger.error(f"Error in search_historical_places: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def search_primary_sources(query: str, source_type: str = None) -> str:
-    """
-    Search for primary sources and documents
-
-    Args:
-        query: Search query
-        source_type: Type of source (documents, archives, newspapers)
-
-    Returns:
-        JSON string with primary source results
-    """
-    try:
-        results = await search.search_primary_sources(query, source_type)
-        return results
-    except Exception as e:
-        logger.error(f"Error in search_primary_sources: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def search_biographies(query: str, profession: str = None) -> str:
-    """
-    Search for biographical entries
-
-    Args:
-        query: Person name
-        profession: Optional profession filter
-
-    Returns:
-        JSON string with biographical information
-    """
-    try:
-        results = await search.search_biographies(query, profession)
-        return results
-    except Exception as e:
-        logger.error(f"Error in search_biographies: {e}")
+        logger.error(f"Error in usage_guide: {e}")
         return str({'error': str(e)})
 
 
@@ -195,10 +229,12 @@ async def list_domains(include_unimplemented: bool = False) -> str:
     """
     List all configured domains in the MCP server
 
+    RECOMMENDED WORKFLOW: Use this tool to discover what domains are available and their specializations.
+    After learning which domains specialize in your topic, use search_polish_history with specific domains
+    for targeted, relevant results.
+
     Returns comprehensive information about all historical source domains,
     including their capabilities, categories, difficulty levels, and what they cover.
-
-    Use this tool first to discover available domains before making search queries.
 
     Args:
         include_unimplemented: Include domains that are registered but not yet implemented (default: False)
@@ -423,8 +459,11 @@ async def server_info() -> str:
     """
     Get server information and capabilities
 
+    RECOMMENDED: Call this tool first when connecting to understand available tools
+    and the recommended workflow for using this MCP server effectively.
+
     Returns:
-        JSON string with server information
+        JSON string with server information, recommended workflow, and capabilities
     """
 
     # Get domain information from centralized registry
@@ -436,16 +475,38 @@ async def server_info() -> str:
         'name': 'Polskie Narzędzia Historyczne',
         'version': SERVER_VERSION,
         'description': 'Serwer MCP dla polskich badań historycznych z wyszukiwaniem wielodomenowym, ekstrakcją treści i generowaniem quizów',
+        'recommended_workflow': {
+            'summary': '3-step intelligent search workflow for best results',
+            'steps': [
+                {
+                    'step': 1,
+                    'action': 'Quick Basic Research',
+                    'tool': 'search_wikipedia',
+                    'description': 'Use for fast overviews and basic facts',
+                    'example': 'search_wikipedia("Bitwa pod Grunwaldem")'
+                },
+                {
+                    'step': 2,
+                    'action': 'Learn Domain Specializations',
+                    'tool': 'list_domains',
+                    'description': 'Understand which sources specialize in your topic',
+                    'example': 'list_domains() # Returns domain specializations'
+                },
+                {
+                    'step': 3,
+                    'action': 'Targeted Deep Search',
+                    'tool': 'search_polish_history',
+                    'description': 'Use specific domains for highly relevant results',
+                    'example': 'search_polish_history("II wojna światowa", domains=["ipn", "polona"])'
+                }
+            ],
+            'key_principle': 'Start broad with Wikipedia, then target specialized sources based on domain expertise learned from list_domains'
+        },
         'capabilities': {
             'search': [
-                'Wyszukiwanie API (Wikipedia polska)',
-                'Możliwości web scrapingu (w przyszłości)',
-                'Ekstrakcja treści z URL (w przyszłości)',
-                'Wyszukiwanie postaci historycznych',
-                'Wyszukiwanie wydarzeń historycznych',
-                'Wyszukiwanie miejsc',
-                'Wyszukiwanie źródeł pierwotnych',
-                'Wyszukiwanie biografii'
+                'Wyszukiwanie wielodomenowe (Wikipedia polska, Dzieje.pl, Polona, SuperKid, IPN, Przystanek Historia, GWO)',
+                'Wyszukiwanie Wikipedia polska',
+                'Informacje o domenach historycznych'
             ],
             'extract': [
                 'Article extraction',

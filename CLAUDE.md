@@ -69,7 +69,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Project Overview
 
-This is a **multi-domain Polish history MCP (Model Context Protocol) server** optimized for building history quiz applications and research tools. It provides reliable, CAPTCHA-free search and content extraction across 6 Polish history sources, plus automated quiz generation capabilities.
+This is a **multi-domain Polish history MCP (Model Context Protocol) server** optimized for building history quiz applications and research tools. It provides reliable, CAPTCHA-free search and content extraction across 7 Polish history sources, plus automated quiz generation capabilities.
 
 **Key features:**
 - **Multi-domain search:** Wikipedia, IPN, Dzieje, Polona, PSB, PWN
@@ -88,19 +88,12 @@ Claude Code → MCP Server (FastMCP) → Multi-Domain Services (Wikipedia + 5 fu
                                   Content Extraction & Quiz Generation
 ```
 
-The MCP server (`server.py`) exposes **24 specialized tools**:
+The MCP server (`server.py`) exposes **13 specialized tools**:
 
-**Search Tools (10):**
-- `search_polish_history` - Multi-domain search across all sources
-- `search_wikipedia_polish` - Polish Wikipedia search
-- `search_wikipedia_english` - English Wikipedia search
-- `search_historical_figures` - Optimized for historical people
-- `search_historical_events` - Optimized for events
-- `search_historical_places` - Find locations
-- `search_primary_sources` - Find documents/archives
-- `search_biographies` - Find biographies
-- `search_timelines` - Find timeline data
-- `search_definitions` - Find encyclopedia definitions
+**Search Tools (3):**
+- `search_polish_history` - Multi-domain search across all 7 implemented sources
+- `search_wikipedia` - Polish Wikipedia search
+- `list_domains` - List available historical source domains
 
 **Extract Tools (6):**
 - `extract_article` - Get full article content
@@ -274,7 +267,7 @@ chmod +x server.py
 mcp-server/
 ├── server.py                   # Main MCP entry point (FastMCP)
 ├── tools/                      # MCP tool implementations
-│   ├── search.py              # 10+ search tools
+│   ├── search.py              # 3 core search tools
 │   ├── extract.py             # 6 content extraction tools
 │   └── quiz.py                # 8 quiz generation tools
 ├── services/                   # Business logic layer
