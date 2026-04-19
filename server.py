@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-FastMCP server for Polish History Quiz Application
-Provides multi-domain search, content extraction, and quiz generation tools
+FastMCP server for Polish History Research
+Provides multi-domain search and content extraction tools
 
 This is the NEW server entry point - replaces wikipedia_mcp_server.py
 """
 
 from fastmcp import FastMCP
-from tools import search, extract, quiz
+from tools import search, extract
 from models.domains import DomainRegistry, Difficulty
 import logging
 
@@ -282,119 +282,6 @@ async def extract_article(url: str) -> str:
 
 
 
-
-# ============================================================================
-# QUIZ TOOLS
-# ============================================================================
-
-@mcp.tool()
-async def generate_quiz_question(topic: str, difficulty: str = 'medium', question_type: str = 'multiple_choice') -> str:
-    """
-    Generate a single quiz question on a historical topic
-
-    Supported question types:
-    - multiple_choice: Multiple choice question
-    - date: Date-based question
-    - figure_identification: Identify historical figure
-    - event_identification: Identify historical event
-
-    Args:
-        topic: Historical topic (e.g., "Bolesław III Krzywousty", "Bitwa pod Grunwaldem")
-        difficulty: Difficulty level (easy, medium, hard, expert)
-        question_type: Type of question to generate
-
-    Returns:
-        JSON string with quiz question
-    """
-    try:
-        results = await quiz.generate_quiz_question(topic, difficulty, question_type)
-        return results
-    except Exception as e:
-        logger.error(f"Error in generate_quiz_question: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def generate_quiz_questions(topic: str, count: int = 5, difficulty: str = 'medium') -> str:
-    """
-    Generate multiple quiz questions on a historical topic
-
-    Args:
-        topic: Historical topic
-        count: Number of questions to generate (default: 5)
-        difficulty: Difficulty level (easy, medium, hard, expert)
-
-    Returns:
-        JSON string with list of quiz questions
-    """
-    try:
-        results = await quiz.generate_quiz_questions(topic, count, difficulty)
-        return results
-    except Exception as e:
-        logger.error(f"Error in generate_quiz_questions: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def validate_quiz_answer(question_url: str, user_answer: str) -> str:
-    """
-    Validate a quiz answer against the source material
-
-    Args:
-        question_url: URL of the source article
-        user_answer: User's answer
-
-    Returns:
-        JSON string with validation result and feedback
-    """
-    try:
-        results = await quiz.validate_quiz_answer(question_url, user_answer)
-        return results
-    except Exception as e:
-        logger.error(f"Error in validate_quiz_answer: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def extract_quiz_facts(topic: str, count: int = 10) -> str:
-    """
-    Extract facts suitable for quiz generation
-
-    Args:
-        topic: Historical topic
-        count: Number of facts to extract (default: 10)
-
-    Returns:
-        JSON string with quiz-relevant facts
-    """
-    try:
-        results = await quiz.extract_quiz_facts(topic, count)
-        return results
-    except Exception as e:
-        logger.error(f"Error in extract_quiz_facts: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def generate_multiple_choice(topic: str, difficulty: str = 'medium') -> str:
-    """
-    Generate a multiple choice question
-
-    Args:
-        topic: Historical topic
-        difficulty: Difficulty level
-
-    Returns:
-        JSON string with multiple choice question
-    """
-    try:
-        results = await quiz.generate_multiple_choice(topic, difficulty)
-        return results
-    except Exception as e:
-        logger.error(f"Error in generate_multiple_choice: {e}")
-        return str({'error': str(e)})
-
-
 # ============================================================================
 # SERVER INFO
 # ============================================================================
@@ -419,7 +306,7 @@ async def server_info() -> str:
     info = {
         'name': 'Polskie Narzędzia Historyczne',
         'version': SERVER_VERSION,
-        'description': 'Serwer MCP dla polskich badań historycznych z wyszukiwaniem wielodomenowym, ekstrakcją treści i generowaniem quizów',
+        'description': 'Serwer MCP dla polskich badań historycznych z wyszukiwaniem wielodomenowym i ekstrakcją treści',
         'recommended_workflow': {
             'summary': '3-step intelligent search workflow for best results',
             'steps': [
@@ -455,16 +342,6 @@ async def server_info() -> str:
             ],
             'extract': [
                 'Article extraction (Wikipedia only)'
-            ],
-            'quiz': [
-                'Question generation',
-                'Multiple questions generation',
-                'Answer validation',
-                'Quiz fact extraction',
-                'Multiple choice generation',
-                'Date questions',
-                'Figure identification',
-                'Event identification'
             ]
         },
         'domains': {
@@ -489,7 +366,7 @@ async def server_info() -> str:
 def main():
     """Main entry point for the server"""
     logger.info(f"Starting Polish History Tools MCP Server v{SERVER_VERSION}")
-    logger.info("Multi-domain search, content extraction, and quiz generation tools")
+    logger.info("Multi-domain search and content extraction tools")
     mcp.run()
 
 

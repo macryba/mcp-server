@@ -1,29 +1,29 @@
 # Polish History MCP Server
 
-A **multi-domain** MCP (Model Context Protocol) server for Polish history research and quiz generation. Provides reliable, CAPTCHA-free search across 6 Polish history sources with automated quiz generation capabilities.
+A **multi-domain** MCP (Model Context Protocol) server for Polish history research. Provides reliable, CAPTCHA-free search across 7 Polish history sources with comprehensive content extraction capabilities.
 
 ## 📚 Documentation
 
 **Complete Documentation:**
 - [Architecture Documentation](docs/mcp-architecture.md) - Complete system architecture and API reference
-- [Tool Reference](docs/mcp-architecture.md#tool-reference) - All 24 available MCP tools
+- [Tool Reference](docs/mcp-architecture.md#tool-reference) - All 5 available MCP tools
 - [API Documentation](docs/mcp-architecture.md#api-documentation) - Service layer API
 - [Development Guide](docs/mcp-architecture.md#development-guide) - Adding new tools and domains
 
 ## 🎯 Purpose
 
 This server provides comprehensive access to Polish historical information through multiple trusted sources:
-- **Wikipedia** (Polish & English editions)
-- **IPN** (Institute of National Remembrance) - coming soon
-- **Dzieje.pl** - Polish history portal - coming soon
-- **Polona** - Digital library - coming soon
-- **PSB** - Polish Biographical Dictionary - coming soon
-- **PWN Encyclopedia** - coming soon
+- **Wikipedia** (Polish edition) - ✅ implemented
+- **IPN** (Institute of National Remembrance) - ✅ implemented
+- **Dzieje.pl** - Polish history portal - ✅ implemented
+- **Polona** - Digital library - ✅ implemented
+- **SuperKid** - Educational portal - ✅ implemented
+- **Przystanek Historia** - 20th century history - ✅ implemented
+- **GWO** - Teaching materials - ✅ implemented
 
 **Key capabilities:**
 - Multi-domain search across Polish history sources
-- Content extraction (articles, facts, timelines, biographies)
-- Automated quiz generation (multiple choice, dates, figures, events)
+- Article content extraction from Wikipedia
 - Robust infrastructure (retry logic, caching, error handling)
 
 ## 🚀 Quick Start
@@ -104,71 +104,53 @@ Restart Claude Code to load the MCP server.
 
 ## 🛠️ Available Tools
 
-The server exposes **24 specialized tools** organized into 3 categories:
+The server exposes **5 specialized tools** organized into 3 categories:
 
-### Search Tools (10)
+### Search Tools (3)
 
-1. **`search_polish_history`** - Multi-domain search across all sources
-2. **`search_wikipedia_polish`** - Polish Wikipedia search
-3. **`search_wikipedia_english`** - English Wikipedia search
-4. **`search_historical_figures`** - Optimized for historical people
-5. **`search_historical_events`** - Optimized for events
-6. **`search_historical_places`** - Find locations
-7. **`search_primary_sources`** - Find documents/archives
-8. **`search_biographies`** - Find biographies
-9. **`search_timelines`** - Find timeline data
-10. **`search_definitions`** - Find encyclopedia definitions
+1. **`search_polish_history`** - Multi-domain search across all 7 implemented sources
+2. **`search_wikipedia`** - Polish Wikipedia search
+3. **`list_domains`** - List available historical source domains with capabilities
 
-### Extract Tools (6)
+### Extract Tools (1)
 
-1. **`extract_article`** - Get full article content
-2. **`extract_facts`** - Extract dates, people, events, locations
-3. **`extract_timeline`** - Extract timeline events
-4. **`extract_biography`** - Extract biographical data
-5. **`extract_locations`** - Extract geographical references
-6. **`extract_dates`** - Extract and normalize dates
+1. **`extract_article`** - Get full article content from Wikipedia
 
-### Quiz Tools (8)
+### Server Info (2)
 
-1. **`generate_quiz_question`** - Generate single question
-2. **`generate_quiz_questions`** - Generate multiple questions
-3. **`validate_quiz_answer`** - Validate user answers
-4. **`extract_quiz_facts`** - Extract facts for quiz generation
-5. **`generate_multiple_choice`** - Generate multiple choice
-6. **`generate_date_question`** - Generate date-based question
-7. **`generate_figure_question`** - Generate figure identification
-8. **`generate_event_question`** - Generate event identification
+1. **`server_info`** - Get server information, capabilities, and recommended workflow
+2. **`usage_guide`** - Get detailed usage guide and workflow recommendations
 
 ## 📚 Example Usage in Claude Code
 
-### Research Historical Figures
+### Quick Wikipedia Search
 
 ```
-Use search_historical_figures to find information about "Bolesław III Krzywousty"
+Use search_wikipedia to find basic information about "Bolesław III Krzywousty"
 ```
 
-### Research Historical Events
+### Multi-Domain Historical Research
 
 ```
-Use search_historical_events to find information about "Bitwa pod Grunwaldem"
+Use search_polish_history to find comprehensive information about "Bitwa pod Grunwaldem" across all 7 sources
 ```
 
-### Generate Quiz Questions
+### Discover Available Sources
 
 ```
-Generate 5 medium-difficulty quiz questions about "Powstanie styczniowe"
+Use list_domains to see which historical sources are available and their specializations
 ```
 
-### Extract Structured Facts
+### Extract Article Content
 
 ```
-Use extract_facts to extract key facts from https://pl.wikipedia.org/wiki/Bitwa_pod_Grunwaldem
+Use extract_article to get full content from https://pl.wikipedia.org/wiki/Bitwa_pod_Grunwaldem
 ```
 
-### Multi-Domain Search
+### Get Usage Guidance
 
 ```
-Search for "Maria Skłodowska-Curie" across Polish and English Wikipedia
+Use usage_guide to learn the recommended 3-step research workflow
 ```
 
 ## 🎓 Optimized for Polish History
@@ -270,8 +252,7 @@ mcp-server/
 ├── server.py                   # Main MCP entry point (FastMCP)
 ├── tools/                      # MCP tool implementations
 │   ├── search.py              # 10+ search tools
-│   ├── extract.py             # 6 content extraction tools
-│   └── quiz.py                # 8 quiz generation tools
+│   └── extract.py             # 6 content extraction tools
 ├── services/                   # Business logic layer
 │   ├── http_client.py         # HTTP client with retry logic
 │   ├── cache.py               # Caching service with TTL
@@ -280,7 +261,6 @@ mcp-server/
 │       └── wikipedia.py       # Wikipedia service
 ├── models/                     # Data models for type safety
 │   ├── search.py              # SearchResult, QueryParams
-│   ├── quiz.py                # QuizQuestion, QuizAnswer
 │   └── facts.py               # HistoricalFact, TimelineEvent
 ├── utils/                      # Utility functions
 │   ├── text.py                # Text processing
@@ -329,13 +309,11 @@ pytest -v --asyncio-mode=auto
 4. **Higher quality** - Trusted primary sources
 5. **Lighter** - Minimal resource usage
 6. **Language-optimized** - Better Polish language support
-7. **Multi-domain** - Search across 6 Polish history sources
-8. **Quiz generation** - Automated question generation
+7. **Multi-domain** - Search across 7 Polish history sources
 
 ### Use Cases
 
 - ✅ Historical research
-- ✅ Quiz generation
 - ✅ Educational content
 - ✅ Fact checking
 - ✅ Timeline creation
@@ -363,18 +341,12 @@ Planned additions:
    - PSB (Polish Biographical Dictionary)
    - PWN Encyclopedia
 
-2. **Advanced quiz features:**
-   - Adaptive difficulty
-   - Question banks
-   - Score tracking
-   - Multiple languages
-
-3. **Performance improvements:**
+2. **Performance improvements:**
    - Redis caching (instead of in-memory)
    - Parallel search across domains
    - Response streaming
 
-4. **Developer features:**
+3. **Developer features:**
    - OpenAPI/Swagger documentation
    - Admin dashboard
    - Rate limiting per user
@@ -399,4 +371,4 @@ Built with:
 
 ---
 
-**For Polish history quiz generation and research, this provides a solid, reliable foundation with multi-domain support and robust infrastructure.**
+**For Polish history research, this provides a solid, reliable foundation with multi-domain support and robust infrastructure.**

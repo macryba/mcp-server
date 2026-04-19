@@ -39,10 +39,6 @@ class Config:
     # Wikipedia settings
     WIKIPEDIA_DEFAULT_LANGUAGE = 'pl'
 
-    # Quiz settings
-    QUIZ_DEFAULT_DIFFICULTY = 'medium'
-    QUIZ_DEFAULT_COUNT = 5
-
     @classmethod
     def from_env(cls):
         """Load configuration from environment variables"""

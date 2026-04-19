@@ -69,11 +69,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Project Overview
 
-This is a **multi-domain Polish history MCP (Model Context Protocol) server** optimized for building history quiz applications and research tools. It provides reliable, CAPTCHA-free search and content extraction across 7 Polish history sources, plus automated quiz generation capabilities.
+This is a **multi-domain Polish history MCP (Model Context Protocol) server** optimized for building history research tools. It provides reliable, CAPTCHA-free search and content extraction across 7 Polish history sources.
 
 **Key features:**
 - **Multi-domain search:** Wikipedia, IPN, Dzieje, Polona, PSB, PWN
-- **Quiz generation:** Automatically generate questions from historical content
 - **Content extraction:** Extract articles, facts, timelines, and biographies
 - **Robust infrastructure:** HTTP client with retry logic, caching, error handling
 - **Type safety:** Comprehensive data models with type hints
@@ -83,12 +82,12 @@ This is a **multi-domain Polish history MCP (Model Context Protocol) server** op
 ## Architecture
 
 ```
-Claude Code → MCP Server (FastMCP) → Multi-Domain Services (Wikipedia + 5 future domains)
+Claude Code → MCP Server (FastMCP) → Multi-Domain Services (Wikipedia + 6 other domains)
                                        ↓
-                                  Content Extraction & Quiz Generation
+                                  Content Extraction
 ```
 
-The MCP server (`server.py`) exposes **13 specialized tools**:
+The MCP server (`server.py`) exposes **5 specialized tools**:
 
 **Search Tools (3):**
 - `search_polish_history` - Multi-domain search across all 7 implemented sources
@@ -98,15 +97,9 @@ The MCP server (`server.py`) exposes **13 specialized tools**:
 **Extract Tools (1):**
 - `extract_article` - Get full article content (Wikipedia only)
 
-**Quiz Tools (8):**
-- `generate_quiz_question` - Generate single question
-- `generate_quiz_questions` - Generate multiple questions
-- `validate_quiz_answer` - Validate user answers
-- `extract_quiz_facts` - Extract facts for quiz generation
-- `generate_multiple_choice` - Generate multiple choice
-- `generate_date_question` - Generate date-based question
-- `generate_figure_question` - Generate figure identification
-- `generate_event_question` - Generate event identification
+**Server Info (1):**
+- `server_info` - Get server information and capabilities
+- `usage_guide` - Get detailed usage guide and workflow recommendations
 
 ## Common Commands
 
@@ -264,7 +257,6 @@ mcp-server/
 ├── tools/                      # MCP tool implementations
 │   ├── search.py              # 3 core search tools
 │   ├── extract.py             # 6 content extraction tools
-│   └── quiz.py                # 8 quiz generation tools
 ├── services/                   # Business logic layer
 │   ├── http_client.py         # HTTP client with retry logic
 │   ├── cache.py               # Caching service with TTL
@@ -273,7 +265,6 @@ mcp-server/
 │       └── wikipedia.py       # Wikipedia service
 ├── models/                     # Data models for type safety
 │   ├── search.py              # SearchResult, QueryParams
-│   ├── quiz.py                # QuizQuestion, QuizAnswer
 │   └── facts.py               # HistoricalFact, TimelineEvent
 ├── utils/                      # Utility functions
 │   ├── text.py                # Text processing
@@ -310,7 +301,7 @@ uv pip install -r requirements.txt
 ## Development
 
 **Adding new tools:**
-1. Add function to appropriate module in `tools/` (search.py, extract.py, or quiz.py)
+1. Add function to appropriate module in `tools/` (search.py or extract.py)
 2. Expose in `server.py` using `@mcp.tool()` decorator
 3. Add tests in `tests/`
 4. Restart Claude Code to load new tools
