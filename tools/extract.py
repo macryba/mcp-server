@@ -6,11 +6,6 @@ Provides tools to extract and process content from various Polish historical sou
 
 from services.domains.wikipedia import WikipediaService
 from services.domains.dzieje import DziejeService
-from services.domains.polona import PolonaService
-from services.domains.ipn import IPNService
-from services.domains.superkid import SuperkidService
-from services.domains.przystanek_historia import PrzystanekHistoriaService
-from services.domains.gwo import GWOService
 from services.http_client import HTTPClient
 from services.cache import get_cache
 from utils.text import normalize_whitespace
@@ -30,11 +25,6 @@ _cache = get_cache()
 # Initialize all domain services that support URL extraction (Polish only)
 _wikipedia = WikipediaService(language='pl', http_client=_http_client, cache_service=_cache)
 _dzieje = DziejeService(http_client=_http_client, cache_service=_cache)
-_polona = PolonaService(http_client=_http_client, cache_service=_cache)
-_ipn = IPNService(http_client=_http_client, cache_service=_cache)
-_superkid = SuperkidService(http_client=_http_client, cache_service=_cache)
-_przystanek_historia = PrzystanekHistoriaService(http_client=_http_client, cache_service=_cache)
-_gwo = GWOService(http_client=_http_client, cache_service=_cache)
 
 
 def _detect_domain_from_url(url: str) -> Optional[str]:
@@ -65,16 +55,6 @@ def _detect_domain_from_url(url: str) -> Optional[str]:
                 return None
         elif 'dzieje.pl' in hostname:
             return 'dzieje'
-        elif 'polona.pl' in hostname:
-            return 'polona'
-        elif 'edukacja.ipn.gov.pl' in hostname or 'ipn.gov.pl' in hostname:
-            return 'ipn'
-        elif 'superkid.pl' in hostname:
-            return 'superkid'
-        elif 'przystanekhistoria.pl' in hostname:
-            return 'przystanek_historia'
-        elif 'gwo.pl' in hostname:
-            return 'gwo'
         else:
             return None
 
@@ -96,11 +76,6 @@ def _get_service_for_domain(domain: str):
     service_map = {
         'wikipedia': _wikipedia,
         'dzieje': _dzieje,
-        'polona': _polona,
-        'ipn': _ipn,
-        'superkid': _superkid,
-        'przystanek_historia': _przystanek_historia,
-        'gwo': _gwo,
     }
 
     return service_map.get(domain)
@@ -113,11 +88,6 @@ async def extract_article(url: str) -> str:
     Supports all configured Polish history domains with URL extraction capability:
     - Wikipedia Polska (pl.wikipedia.org)
     - Dzieje.pl (dzieje.pl)
-    - Polona (polona.pl)
-    - IPN Edukacja (edukacja.ipn.gov.pl)
-    - SuperKid (superkid.pl)
-    - Przystanek Historia (przystanekhistoria.pl)
-    - GWO (gwo.pl)
 
     Args:
         url: URL of the article to extract
@@ -135,13 +105,7 @@ async def extract_article(url: str) -> str:
                 'url': url,
                 'supported_domains': [
                     'pl.wikipedia.org',
-                    'dzieje.pl',
-                    'polona.pl',
-                    'edukacja.ipn.gov.pl',
-                    'ipn.gov.pl',
-                    'superkid.pl',
-                    'przystanekhistoria.pl',
-                    'gwo.pl'
+                    'dzieje.pl'
                 ],
                 'note': 'This MCP server supports only Polish historical sources. Non-Polish Wikipedia editions and other non-Polish domains are not supported.'
             })

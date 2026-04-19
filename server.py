@@ -35,19 +35,13 @@ async def search_polish_history(query: str, domains: list = None, limit: int = 1
     Search trusted Polish history sources and return matching pages
 
     RECOMMENDED WORKFLOW: After using list_domains to understand domain specializations, use this tool
-    with specific domains for targeted searches. For example, if searching for primary sources about
-    World War II, you might specify domains=["ipn", "polona"] after learning they specialize in that area.
+    with specific domains for targeted searches.
 
     Currently implemented domains:
     - wikipedia (Polish Wikipedia) - ✅ available (API search)
     - dzieje (Dzieje.pl) - ✅ available (web scraping)
-    - polona (National Library digital collection) - ✅ available (official API)
-    - superkid (SuperKid educational portal) - ✅ available (web scraping, limited)
-    - ipn (Edukacja IPN) - ✅ available (web scraping)
-    - przystanek_historia (IPN Przystanek Historia) - ✅ available (web scraping)
-    - gwo (GWO Historia) - ✅ available (web scraping)
 
-    All planned domains are now implemented!
+    Note: This server now focuses on 2 fully-functional domains for reliable Polish historical research.
 
     Args:
         query: Search query string (e.g., "Bolesław III Krzywousty")
@@ -110,7 +104,7 @@ async def usage_guide() -> str:
         guide = {
             'server_name': 'Polskie Narzędzia Historyczne',
             'version': SERVER_VERSION,
-            'introduction': 'This MCP server provides intelligent, multi-domain search across 7 Polish historical sources. The tools are designed for progressive research: start quick, go deep when needed.',
+            'introduction': 'This MCP server provides intelligent, multi-domain search across Polish historical sources. The tools are designed for progressive research: start quick, go deep when needed. Focus on Wikipedia and Dzieje.pl for best results. Other domains have limited functionality.',
             'core_workflow': {
                 'title': '3-Step Progressive Research Workflow',
                 'philosophy': 'Start with broad Wikipedia search, then target specialized sources based on domain expertise',
@@ -146,9 +140,8 @@ async def usage_guide() -> str:
                         'why': 'Different domains specialize in different periods and types of content',
                         'examples': [
                             'list_domains() # Returns all domain specializations',
-                            '# Learn: IPN → WWII, communism, 20th century',
-                            '# Learn: Polona → Primary sources, archival documents',
-                            '# Learn: Dzieje.pl → Popular history, articles'
+                            '# Learn: Dzieje.pl → Popular history, articles',
+                            '# Learn: Wikipedia → General knowledge'
                         ]
                     },
                     {
@@ -159,7 +152,7 @@ async def usage_guide() -> str:
                         'why': 'Get highly relevant results from expert sources',
                         'examples': [
                             '# Primary sources about WWII',
-                            'search_polish_history("II wojna światowa dokumenty", domains=["ipn", "polona"])',
+                            'search_polish_history("II wojna światowa dokumenty", domains=["ipn"])',
                             '',
                             '# Educational content about medieval history',
                             'search_polish_history("król Polski średniowiecze", domains=["wikipedia", "dzieje", "gwo"])',
@@ -174,12 +167,7 @@ async def usage_guide() -> str:
                 'description': 'Quick reference for domain expertise (see list_domains for full details)',
                 'domains': [
                     {'name': 'wikipedia', 'best_for': 'General knowledge, quick overviews', 'examples': 'Kings, battles, basic facts'},
-                    {'name': 'ipn', 'best_for': '20th century, WWII, communism', 'examples': 'WWII documents, communist era, post-war Poland'},
-                    {'name': 'polona', 'best_for': 'Primary sources, archival documents', 'examples': 'Historical manuscripts, old newspapers, scans'},
-                    {'name': 'dzieje', 'best_for': 'Popular history, articles', 'examples': 'History magazines, educational content'},
-                    {'name': 'gwo', 'best_for': 'Educational materials', 'examples': 'School-level history, educational resources'},
-                    {'name': 'przystanek_historia', 'best_for': '20th century popular history', 'examples': 'WWII, communism, popular history articles'},
-                    {'name': 'superkid', 'best_for': 'Educational content for youth', 'examples': 'School history, educational materials'}
+                    {'name': 'dzieje', 'best_for': 'Popular history, articles', 'examples': 'History magazines, educational content'}
                 ]
             },
             'query_optimization_tips': {
@@ -201,9 +189,8 @@ async def usage_guide() -> str:
                     'scenario': 'User wants detailed information about the Warsaw Uprising',
                     'workflow': [
                         'search_wikipedia("Powstanie warszawskie") # Basic overview',
-                        '# User wants primary sources →',
-                        'list_domains() # Learn IPN and Polona specialize in this',
-                        'search_polish_history("Powstanie warszawskie dokumenty", domains=["ipn", "polona"])'
+                        '# User wants more detailed information →',
+                        'search_polish_history("Powstanie warszawskie", domains=["wikipedia", "dzieje"])'
                     ]
                 },
                 {
@@ -270,11 +257,6 @@ async def extract_article(url: str) -> str:
     Supports all configured Polish history domains with URL extraction capability:
     - Wikipedia Polska (pl.wikipedia.org)
     - Dzieje.pl (dzieje.pl)
-    - Polona (polona.pl)
-    - IPN Edukacja (edukacja.ipn.gov.pl)
-    - SuperKid (superkid.pl)
-    - Przystanek Historia (przystanekhistoria.pl)
-    - GWO (gwo.pl)
 
     Args:
         url: URL of the article to extract
@@ -338,19 +320,19 @@ async def server_info() -> str:
                     'action': 'Targeted Deep Search',
                     'tool': 'search_polish_history',
                     'description': 'Use specific domains for highly relevant results',
-                    'example': 'search_polish_history("II wojna światowa", domains=["ipn", "polona"])'
+                    'example': 'search_polish_history("II wojna światowa", domains=["wikipedia", "dzieje"])'
                 }
             ],
             'key_principle': 'Start broad with Wikipedia, then target specialized sources based on domain expertise learned from list_domains'
         },
         'capabilities': {
             'search': [
-                'Wyszukiwanie wielodomenowe (Wikipedia polska, Dzieje.pl, Polona, SuperKid, IPN, Przystanek Historia, GWO)',
+                'Wyszukiwanie wielodomenowe (Wikipedia polska, Dzieje.pl)',
                 'Wyszukiwanie Wikipedia polska',
                 'Informacje o domenach historycznych'
             ],
             'extract': [
-                'Article extraction (Polish sources only: Wikipedia Polska, Dzieje.pl, Polona, IPN, SuperKid, Przystanek Historia, GWO)'
+                'Article extraction (Polish sources only: Wikipedia Polska, Dzieje.pl)'
             ]
         },
         'domains': {
