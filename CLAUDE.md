@@ -319,6 +319,11 @@ uv pip install -r requirements.txt
 - Error handling with try/except blocks
 - Logging with appropriate log levels
 
+**Commit message requirements:**
+- All commits MUST follow the project commit message guidelines
+- See `COMMIT_MESSAGE_GUIDELINES.md` for detailed requirements
+- No footers, issue references, or breaking change notices in commit messages
+
 **Testing:**
 ```bash
 # Run all tests
