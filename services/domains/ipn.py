@@ -21,8 +21,15 @@ class IPNService(BaseDomainService):
     """
     IPN Edukacja domain service for historical education materials
 
-    Note: IPN uses POST forms for search. This service implements
-    content extraction and search via web scraping.
+    Note: IPN (Instytut Pamięci Narodowej) specializes in:
+    - 20th century Polish history (1939-1990)
+    - WWII, Communist period, Security services
+    - Sovereignty losses and democratic transitions
+
+    Search limitations:
+    - IPN uses POST forms for search - automated search is limited
+    - Medieval/early modern topics (like Jadwiga Andegaweńska) are outside scope
+    - For best results, use direct URLs or focus on 20th century topics
     """
 
     def __init__(self, http_client: HTTPClient = None, cache_service: CacheService = None):
@@ -41,18 +48,18 @@ class IPNService(BaseDomainService):
         """
         Search IPN education portal
 
-        Note: IPN uses POST form for search. This method tries GET approximation.
+        Note: IPN uses POST forms for search, making automated searching difficult.
+        This method attempts basic content filtering but has significant limitations.
 
         Args:
             query: Search query string
             limit: Maximum number of results
 
         Returns:
-            List of search results
+            List of search results (likely empty for non-20th century topics)
         """
         try:
-            # Try GET with search parameters (may not work well with POST forms)
-            # Alternative: could try material listing pages
+            # Try the materials listing page
             response = await self.http_client.get(f"{self.base_url}/edu/materialy-edukacyjne")
 
             html_content = response.get('text', '') if isinstance(response, dict) else str(response)
@@ -61,33 +68,39 @@ class IPNService(BaseDomainService):
                 return [{
                     'error': 'No content returned from IPN',
                     'source': 'ipn',
-                    'query': query
+                    'query': query,
+                    'note': 'IPN uses POST forms for search - automated search limited. Try direct URLs for specific materials.'
                 }]
 
             soup = BeautifulSoup(html_content, 'html.parser')
 
             results = []
 
-            # IPN material listing structure
+            # IPN uses various HTML structures for material listings
             material_items = (
-                soup.find_all('div', class_='material-item') or
+                soup.find_all('div', class_=re.compile(r'material|item|resource|card')) or
                 soup.find_all('article') or
-                soup.find_all('div', class_=re.compile(r'item|material|resource'))
+                soup.find_all('div', class_=re.compile(r'type|kind|category'))
             )
 
-            # Filter items that contain query (basic text search)
             query_lower = query.lower()
 
-            for item in material_items[:limit * 3]:  # Get more items for filtering
+            for item in material_items[:limit * 3]:
                 try:
                     item_text = item.get_text().lower()
 
-                    # Basic relevance filter - check if query appears in text
-                    if query_lower not in item_text:
+                    # IPN focuses on 20th century - warn about historical scope mismatch
+                    if query_lower not in item_text and len(query_lower) > 3:
                         continue
 
-                    # Extract title
-                    title_elem = item.find(['h2', 'h3', 'h4']) or item.find('a', class_=re.compile(r'title'))
+                    # Extract title using better selectors
+                    title_elem = (
+                        item.select_one('h2 a') or
+                        item.select_one('h3 a') or
+                        item.select_one('h4 a') or
+                        item.find(['h2', 'h3', 'h4']) or
+                        item.find('a', class_=re.compile(r'title'))
+                    )
                     title = title_elem.get_text(strip=True) if title_elem else "Bez tytułu"
 
                     # Extract URL
@@ -101,24 +114,24 @@ class IPNService(BaseDomainService):
                     desc_elem = item.find(['p', 'div'], class_=re.compile(r'desc|summary|content'))
                     description = desc_elem.get_text(strip=True) if desc_elem else ""
 
-                    # Extract metadata
+                    # Check relevance for IPN's scope (20th century)
+                    historical_keywords = ['ii wojna', 'ii rp', 'powstanie', 'komunizm', 'zw', 'ub', 'sb', 'prl', '1939', '1945', '1989']
+                    is_modern_history = any(kw in item_text for kw in historical_keywords)
+
                     metadata = {
                         'language': 'pl',
                         'domain': 'edukacja.ipn.gov.pl',
-                        'source_type': 'educational_materials'
+                        'source_type': 'educational_materials',
+                        'query_matched': query_lower in item_text,
+                        'is_modern_history': is_modern_history
                     }
-
-                    # Try to extract category/type
-                    type_elem = item.find(['span', 'div'], class_=re.compile(r'category|type|tag'))
-                    if type_elem:
-                        metadata['category'] = type_elem.get_text(strip=True)
 
                     results.append({
                         'title': title,
                         'snippet': description[:300] if len(description) > 300 else description,
                         'url': url,
                         'source': 'ipn',
-                        'relevance_score': 0.6,
+                        'relevance_score': 0.6 if query_lower in item_text else 0.3,
                         'metadata': metadata
                     })
 
@@ -128,6 +141,24 @@ class IPNService(BaseDomainService):
                 except Exception as e:
                     logger.warning(f"Error parsing IPN result item: {e}")
                     continue
+
+            if not results:
+                return [{
+                    'error': 'No matching results found',
+                    'source': 'ipn',
+                    'query': query,
+                    'note': 'IPN specializes in 20th century Polish history. For medieval/early modern topics, try Wikipedia or Dzieje.pl'
+                }]
+
+            return results
+
+        except Exception as e:
+            return [{
+                'error': str(e),
+                'source': 'ipn',
+                'query': query,
+                'note': 'Search request failed - IPN uses POST forms for search'
+            }]
 
             if not results:
                 return [{
@@ -175,11 +206,12 @@ class IPNService(BaseDomainService):
             title_elem = soup.find('h1') or soup.find('title')
             title = title_elem.get_text(strip=True) if title_elem else ""
 
-            # Extract main content
+            # Extract main content - try better selectors for IPN structure
             content_elem = (
-                soup.find('div', class_=re.compile(r'content|article|main|text')) or
                 soup.find('article') or
-                soup.find('main')
+                soup.find('main') or
+                soup.find('div', class_=re.compile(r'content|article-body|field-name-body|main-content')) or
+                soup.find('div', id=re.compile(r'content|main|article'))
             )
 
             if content_elem:

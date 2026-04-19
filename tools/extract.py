@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """
 Content extraction tools for Polish history research
-Provides tools to extract and process content from various sources
+Provides tools to extract and process content from various Polish historical sources
 """
 
 from services.domains.wikipedia import WikipediaService
+from services.domains.dzieje import DziejeService
+from services.domains.polona import PolonaService
+from services.domains.ipn import IPNService
+from services.domains.superkid import SuperkidService
+from services.domains.przystanek_historia import PrzystanekHistoriaService
+from services.domains.gwo import GWOService
 from services.http_client import HTTPClient
 from services.cache import get_cache
 from utils.text import normalize_whitespace
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from urllib.parse import urlparse
 import logging
 
 # Configure logging
@@ -19,12 +26,98 @@ logger = logging.getLogger(__name__)
 # Initialize services
 _http_client = HTTPClient()
 _cache = get_cache()
-_wikipedia_pl = WikipediaService(language='pl', http_client=_http_client, cache_service=_cache)
+
+# Initialize all domain services that support URL extraction (Polish only)
+_wikipedia = WikipediaService(language='pl', http_client=_http_client, cache_service=_cache)
+_dzieje = DziejeService(http_client=_http_client, cache_service=_cache)
+_polona = PolonaService(http_client=_http_client, cache_service=_cache)
+_ipn = IPNService(http_client=_http_client, cache_service=_cache)
+_superkid = SuperkidService(http_client=_http_client, cache_service=_cache)
+_przystanek_historia = PrzystanekHistoriaService(http_client=_http_client, cache_service=_cache)
+_gwo = GWOService(http_client=_http_client, cache_service=_cache)
+
+
+def _detect_domain_from_url(url: str) -> Optional[str]:
+    """
+    Detect which Polish domain service should handle the URL based on the hostname
+
+    Args:
+        url: URL to analyze
+
+    Returns:
+        Domain service name or None if not recognized
+    """
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname or parsed.netloc or ""
+
+        # Convert to lowercase for case-insensitive matching
+        hostname = hostname.lower()
+
+        # Domain detection patterns (Polish sources only)
+        if 'wikipedia.org' in hostname:
+            # Only Polish Wikipedia is supported
+            if hostname.startswith('pl.'):
+                return 'wikipedia'
+            else:
+                # Reject non-Polish Wikipedia URLs
+                logger.warning(f"Non-Polish Wikipedia URL detected: {hostname}")
+                return None
+        elif 'dzieje.pl' in hostname:
+            return 'dzieje'
+        elif 'polona.pl' in hostname:
+            return 'polona'
+        elif 'edukacja.ipn.gov.pl' in hostname or 'ipn.gov.pl' in hostname:
+            return 'ipn'
+        elif 'superkid.pl' in hostname:
+            return 'superkid'
+        elif 'przystanekhistoria.pl' in hostname:
+            return 'przystanek_historia'
+        elif 'gwo.pl' in hostname:
+            return 'gwo'
+        else:
+            return None
+
+    except Exception as e:
+        logger.warning(f"Error parsing URL {url}: {e}")
+        return None
+
+
+def _get_service_for_domain(domain: str):
+    """
+    Get the service instance for a given domain name
+
+    Args:
+        domain: Domain service name
+
+    Returns:
+        Domain service instance or None if not found
+    """
+    service_map = {
+        'wikipedia': _wikipedia,
+        'dzieje': _dzieje,
+        'polona': _polona,
+        'ipn': _ipn,
+        'superkid': _superkid,
+        'przystanek_historia': _przystanek_historia,
+        'gwo': _gwo,
+    }
+
+    return service_map.get(domain)
 
 
 async def extract_article(url: str) -> str:
     """
     Fetch a page and return cleaned title, URL, and article text
+
+    Supports all configured Polish history domains with URL extraction capability:
+    - Wikipedia Polska (pl.wikipedia.org)
+    - Dzieje.pl (dzieje.pl)
+    - Polona (polona.pl)
+    - IPN Edukacja (edukacja.ipn.gov.pl)
+    - SuperKid (superkid.pl)
+    - Przystanek Historia (przystanekhistoria.pl)
+    - GWO (gwo.pl)
 
     Args:
         url: URL of the article to extract
@@ -33,23 +126,44 @@ async def extract_article(url: str) -> str:
         JSON string with title, content, url, and metadata
     """
     try:
-        # Check if it's a Wikipedia URL
-        if 'wikipedia.org' in url:
-            content = await _wikipedia_pl._cached_extract(url)
-        else:
-            # For non-Wikipedia URLs, we'll need to implement generic extraction
-            # For now, return an error
+        # Detect which domain service should handle this URL
+        domain = _detect_domain_from_url(url)
+
+        if domain is None:
             return str({
-                'error': 'Only Wikipedia URLs are currently supported',
+                'error': 'Unsupported domain - URL not recognized or not a Polish source',
                 'url': url,
-                'supported_domains': ['pl.wikipedia.org', 'en.wikipedia.org']
+                'supported_domains': [
+                    'pl.wikipedia.org',
+                    'dzieje.pl',
+                    'polona.pl',
+                    'edukacja.ipn.gov.pl',
+                    'ipn.gov.pl',
+                    'superkid.pl',
+                    'przystanekhistoria.pl',
+                    'gwo.pl'
+                ],
+                'note': 'This MCP server supports only Polish historical sources. Non-Polish Wikipedia editions and other non-Polish domains are not supported.'
             })
 
+        # Get the appropriate service for this domain
+        service = _get_service_for_domain(domain)
+
+        if service is None:
+            return str({
+                'error': f'Domain {domain} detected but service not available',
+                'url': url
+            })
+
+        # Extract content using the domain-specific service
+        content = await service._cached_extract(url)
+
         # Clean and normalize the content
-        if 'content' in content:
+        if 'content' in content and isinstance(content['content'], str):
             content['content'] = normalize_whitespace(content['content'])
 
         return str(content)
+
     except Exception as e:
         logger.error(f"Error in extract_article: {e}")
         return str({'error': str(e), 'url': url})

@@ -42,8 +42,11 @@ class DziejeService(BaseDomainService):
         """
         Search Dzieje.pl using web scraping
 
-        Note: This uses the search endpoint with proper parameters.
-        May be affected by robots.txt restrictions - use sparingly.
+        Note: Dzieje.pl search functionality has known limitations:
+        - Search results may not be relevant to the query
+        - Site appears to return random/latest articles regardless of search terms
+        - For specific historical figures, consider using direct URLs if known
+        - May be affected by robots.txt restrictions - use sparingly
 
         Args:
             query: Search query string
@@ -77,39 +80,56 @@ class DziejeService(BaseDomainService):
             soup = BeautifulSoup(html_content, 'html.parser')
 
             results = []
-            search_items = soup.find_all('div', class_='search-result') or \
-                         soup.find_all('article') or \
-                         soup.find_all('div', class_='views-row')
+
+            # Use the correct CSS selector for Dzieje.pl search results
+            search_items = soup.find_all('div', class_='views-row')
 
             for item in search_items[:limit]:
                 try:
-                    # Extract title
-                    title_elem = item.find(['h2', 'h3', 'h4']) or item.find('a', class_='title')
+                    # Extract title using correct selector
+                    title_elem = item.select_one('div.views-field-title a')
                     title = title_elem.get_text(strip=True) if title_elem else "Bez tytułu"
 
                     # Extract URL
-                    url_elem = item.find('a', href=True)
-                    url = urljoin(self.base_url, url_elem['href']) if url_elem else None
+                    url_elem = item.select_one('div.views-field-title a')
+                    if url_elem and url_elem.get('href'):
+                        url = urljoin(self.base_url, url_elem['href'])
+                    else:
+                        continue  # Skip items without URL
 
-                    # Extract snippet/description
-                    snippet_elem = item.find(['p', 'div'], class_=re.compile(r'summary|snippet|description'))
-                    snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+                    # Try to extract snippet/description
+                    # Dzieje.pl search results may not have snippets, so we use basic text
+                    snippet_elem = item.select_one('div.views-field-field-description')
+                    if snippet_elem:
+                        snippet = snippet_elem.get_text(strip=True)
+                    else:
+                        # Fallback to general text content
+                        snippet = item.get_text(strip=True)[:200]
+                        snippet = re.sub(r'\s+', ' ', snippet).strip()
 
-                    # Clean up snippet
-                    snippet = re.sub(r'\s+', ' ', snippet).strip()
+                    # Check if result is relevant to query
+                    item_text = item.get_text().lower()
+                    query_lower = query.lower()
+                    # Basic relevance check - does query appear in the text?
+                    if query_lower not in item_text and len(query_lower) > 3:
+                        # Skip clearly irrelevant results
+                        continue
 
-                    if url:
-                        results.append({
-                            'title': title,
-                            'snippet': snippet[:300] if len(snippet) > 300 else snippet,
-                            'url': url,
-                            'source': 'dzieje',
-                            'relevance_score': 0.5,  # Default relevance since we don't have API metrics
-                            'metadata': {
-                                'language': 'pl',
-                                'domain': 'dzieje.pl'
-                            }
-                        })
+                    # Extract metadata
+                    metadata = {
+                        'language': 'pl',
+                        'domain': 'dzieje.pl',
+                        'query_matched': query_lower in item_text
+                    }
+
+                    results.append({
+                        'title': title,
+                        'snippet': snippet[:300] if len(snippet) > 300 else snippet,
+                        'url': url,
+                        'source': 'dzieje',
+                        'relevance_score': 0.7 if query_lower in item_text else 0.5,
+                        'metadata': metadata
+                    })
                 except Exception as e:
                     logger.warning(f"Error parsing search result item: {e}")
                     continue
@@ -159,11 +179,11 @@ class DziejeService(BaseDomainService):
             title = title_elem.get_text(strip=True) if title_elem else ""
 
             # Extract main content
-            # Dzieje.pl typically uses specific content divs
+            # Dzieje.pl uses article tag for main content
             content_elem = (
-                soup.find('div', class_=re.compile(r'content|article-body|field-name-body')) or
                 soup.find('article') or
-                soup.find('main')
+                soup.find('main') or
+                soup.find('div', class_=re.compile(r'content|article-body|field-name-body'))
             )
 
             if content_elem:

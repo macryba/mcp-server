@@ -267,6 +267,15 @@ async def extract_article(url: str) -> str:
     """
     Fetch a page and return cleaned title, URL, and article text
 
+    Supports all configured Polish history domains with URL extraction capability:
+    - Wikipedia Polska (pl.wikipedia.org)
+    - Dzieje.pl (dzieje.pl)
+    - Polona (polona.pl)
+    - IPN Edukacja (edukacja.ipn.gov.pl)
+    - SuperKid (superkid.pl)
+    - Przystanek Historia (przystanekhistoria.pl)
+    - GWO (gwo.pl)
+
     Args:
         url: URL of the article to extract
 
@@ -341,7 +350,7 @@ async def server_info() -> str:
                 'Informacje o domenach historycznych'
             ],
             'extract': [
-                'Article extraction (Wikipedia only)'
+                'Article extraction (Polish sources only: Wikipedia Polska, Dzieje.pl, Polona, IPN, SuperKid, Przystanek Historia, GWO)'
             ]
         },
         'domains': {
