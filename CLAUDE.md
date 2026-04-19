@@ -95,13 +95,8 @@ The MCP server (`server.py`) exposes **13 specialized tools**:
 - `search_wikipedia` - Polish Wikipedia search
 - `list_domains` - List available historical source domains
 
-**Extract Tools (6):**
-- `extract_article` - Get full article content
-- `extract_facts` - Extract dates, people, events, locations
-- `extract_timeline` - Extract timeline events
-- `extract_biography` - Extract biographical data
-- `extract_locations` - Extract geographical references
-- `extract_dates` - Extract and normalize dates
+**Extract Tools (1):**
+- `extract_article` - Get full article content (Wikipedia only)
 
 **Quiz Tools (8):**
 - `generate_quiz_question` - Generate single question

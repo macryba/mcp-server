@@ -281,61 +281,6 @@ async def extract_article(url: str) -> str:
         return str({'error': str(e)})
 
 
-@mcp.tool()
-async def extract_facts(url: str) -> str:
-    """
-    Extract dates, people, places, and events from a history article
-
-    Args:
-        url: URL of the article
-
-    Returns:
-        JSON string with structured facts (dates, figures, events, locations)
-    """
-    try:
-        results = await extract.extract_facts(url)
-        return results
-    except Exception as e:
-        logger.error(f"Error in extract_facts: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def extract_timeline(url: str) -> str:
-    """
-    Extract timeline events from an article
-
-    Args:
-        url: URL of the article
-
-    Returns:
-        JSON string with timeline events
-    """
-    try:
-        results = await extract.extract_timeline(url)
-        return results
-    except Exception as e:
-        logger.error(f"Error in extract_timeline: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def extract_biography(url: str) -> str:
-    """
-    Extract biographical data from an article
-
-    Args:
-        url: URL of the biographical article
-
-    Returns:
-        JSON string with biographical information
-    """
-    try:
-        results = await extract.extract_biography(url)
-        return results
-    except Exception as e:
-        logger.error(f"Error in extract_biography: {e}")
-        return str({'error': str(e)})
 
 
 # ============================================================================
@@ -509,10 +454,7 @@ async def server_info() -> str:
                 'Informacje o domenach historycznych'
             ],
             'extract': [
-                'Article extraction',
-                'Fact extraction',
-                'Timeline extraction',
-                'Biography extraction'
+                'Article extraction (Wikipedia only)'
             ],
             'quiz': [
                 'Question generation',

@@ -5,7 +5,7 @@ Provides tools to generate quiz questions, validate answers, and extract quiz fa
 """
 
 from tools.search import search_wikipedia
-from tools.extract import extract_facts, extract_article
+from tools.extract import extract_article
 from models.quiz import QuizQuestion, QuestionType, DifficultyLevel
 from typing import List, Dict, Any
 import logging
@@ -40,24 +40,24 @@ async def generate_quiz_question(topic: str, difficulty: str = 'medium', questio
         first_result = results[0]
         url = first_result.get('url')
 
-        # Extract facts from the article
-        facts_data = await extract_facts(url)
-        facts = eval(facts_data)
+        # Extract article content
+        article_data = await extract_article(url)
+        article = eval(article_data)
 
-        if 'error' in facts:
-            return str({'error': 'Could not extract facts for quiz generation'})
+        if 'error' in article:
+            return str({'error': 'Could not extract article for quiz generation'})
 
         # Generate question based on type
         if question_type == 'multiple_choice':
-            question = await _generate_multiple_choice(facts, topic, difficulty)
+            question = await _generate_multiple_choice(article, topic, difficulty)
         elif question_type == 'date':
-            question = await _generate_date_question(facts, topic, difficulty)
+            question = await _generate_date_question(article, topic, difficulty)
         elif question_type == 'figure_identification':
-            question = await _generate_figure_question(facts, topic, difficulty)
+            question = await _generate_figure_question(article, topic, difficulty)
         elif question_type == 'event_identification':
-            question = await _generate_event_question(facts, topic, difficulty)
+            question = await _generate_event_question(article, topic, difficulty)
         else:
-            question = await _generate_multiple_choice(facts, topic, difficulty)
+            question = await _generate_multiple_choice(article, topic, difficulty)
 
         return str(question)
     except Exception as e:
@@ -164,47 +164,21 @@ async def extract_quiz_facts(topic: str, count: int = 10) -> str:
 
         url = results[0].get('url')
 
-        # Extract facts
-        facts_data = await extract_facts(url)
-        facts = eval(facts_data)
+        # Extract article content
+        article_data = await extract_article(url)
+        article = eval(article_data)
 
-        if 'error' in facts:
-            return str({'error': 'Could not extract facts'})
+        if 'error' in article:
+            return str({'error': 'Could not extract article'})
 
-        # Filter and format facts for quiz generation
-        quiz_facts = []
-
-        # Add dates
-        if facts.get('dates'):
-            for date in facts['dates'][:3]:
-                quiz_facts.append({
-                    'type': 'date',
-                    'fact': f'Ważna data: {date}',
-                    'data': date
-                })
-
-        # Add figures
-        if facts.get('figures'):
-            for figure in facts['figures'][:3]:
-                quiz_facts.append({
-                    'type': 'figure',
-                    'fact': f'Postać historyczna: {figure}',
-                    'data': figure
-                })
-
-        # Add events
-        if facts.get('events'):
-            for event in facts['events'][:3]:
-                quiz_facts.append({
-                    'type': 'event',
-                    'fact': f'Wydarzenie: {event}',
-                    'data': event
-                })
-
+        # Since we no longer use regex-based fact extraction, return article content
+        # Users can now implement their own fact extraction using reliable methods
         result = {
             'topic': topic,
-            'facts': quiz_facts[:count],
-            'source_url': url
+            'title': article.get('title', ''),
+            'content': article.get('content', ''),
+            'url': url,
+            'note': 'Structured fact extraction has been removed due to reliability concerns. Please implement custom fact extraction using the article content provided.'
         }
 
         return str(result)
@@ -268,35 +242,23 @@ async def generate_event_question(description: str) -> str:
 
 # Helper functions
 
-async def _generate_multiple_choice(facts: Dict, topic: str, difficulty: str) -> Dict:
+async def _generate_multiple_choice(article: Dict, topic: str, difficulty: str) -> Dict:
     """Generate a multiple choice question"""
-    # Get the title from facts
-    title = facts.get('title', topic)
-    url = facts.get('url', '')
+    # Get the title from article
+    title = article.get('title', topic)
+    url = article.get('url', '')
+    content = article.get('content', '')
 
-    # Generate question based on available facts
-    if facts.get('dates'):
-        # Date-based question
-        correct_date = facts['dates'][0]
-        question = f"Kiedy wydarzyło się {title}?"
-
-        # Generate wrong answers
-        wrong_answers = _generate_wrong_dates(correct_date)
-        options = [correct_date] + wrong_answers
-        random.shuffle(options)
-
-        correct_index = options.index(correct_date)
-
-    else:
-        # General knowledge question
-        question = f"Co jest znane jako '{title}'?"
-        options = [
-            "Postać historyczna",
-            "Wydarzenie historyczne",
-            "Miejsce historyczne",
-            "Okres historyczny"
-        ]
-        correct_index = 0
+    # Generate general knowledge question about the topic
+    question = f"Czym jest '{title}' w historii Polski?"
+    options = [
+        "Postać historyczna",
+        "Wydarzenie historyczne",
+        "Miejsce historyczne",
+        "Okres historyczny"
+    ]
+    random.shuffle(options)
+    correct_index = 0  # Default to first option as correct
 
     return {
         'question': question,
@@ -306,106 +268,50 @@ async def _generate_multiple_choice(facts: Dict, topic: str, difficulty: str) ->
         'difficulty': difficulty,
         'topic': topic,
         'source_url': url,
+        'note': 'Quiz generation simplified - structured fact extraction removed due to reliability concerns',
         'question_type': 'multiple_choice'
     }
 
 
-async def _generate_date_question(facts: Dict, topic: str, difficulty: str) -> Dict:
+async def _generate_date_question(article: Dict, topic: str, difficulty: str) -> Dict:
     """Generate a date question"""
-    title = facts.get('title', topic)
-    url = facts.get('url', '')
+    title = article.get('title', topic)
+    url = article.get('url', '')
 
-    if not facts.get('dates'):
-        return {
-            'error': 'No dates found for this topic'
-        }
-
-    correct_date = facts['dates'][0]
-    question = f"Podaj datę wydarzenia: {title}"
-
-    wrong_answers = _generate_wrong_dates(correct_date)
-    options = [correct_date] + wrong_answers
-    random.shuffle(options)
-    correct_index = options.index(correct_date)
-
+    # Return error since we no longer extract dates
     return {
-        'question': question,
-        'options': options,
-        'correct_answer': options[correct_index],
-        'correct_index': correct_index,
-        'difficulty': difficulty,
+        'error': 'Date question generation disabled - structured fact extraction removed due to reliability concerns',
         'topic': topic,
         'source_url': url,
-        'question_type': 'date'
+        'suggestion': 'Please use article content to manually extract dates or implement a reliable date extraction method'
     }
 
 
-async def _generate_figure_question(facts: Dict, topic: str, difficulty: str) -> Dict:
+async def _generate_figure_question(article: Dict, topic: str, difficulty: str) -> Dict:
     """Generate a figure identification question"""
-    title = facts.get('title', topic)
-    url = facts.get('url', '')
+    title = article.get('title', topic)
+    url = article.get('url', '')
 
-    if not facts.get('figures'):
-        return {
-            'error': 'No historical figures found for this topic'
-        }
-
-    figure = facts['figures'][0]
-    question = f"Kto to jest: {figure}?"
-
-    # Generate options
-    options = [figure]
-    # Would need to generate similar-sounding wrong answers
-    for i in range(3):
-        options.append(f"Inna postać {i+1}")
-
-    random.shuffle(options)
-    correct_index = options.index(figure)
-
+    # Return error since we no longer extract figures
     return {
-        'question': question,
-        'options': options,
-        'correct_answer': options[correct_index],
-        'correct_index': correct_index,
-        'difficulty': difficulty,
+        'error': 'Figure question generation disabled - structured fact extraction removed due to reliability concerns',
         'topic': topic,
         'source_url': url,
-        'question_type': 'figure_identification'
+        'suggestion': 'Please use article content to manually identify figures or implement a reliable figure extraction method'
     }
 
 
-async def _generate_event_question(facts: Dict, topic: str, difficulty: str) -> Dict:
+async def _generate_event_question(article: Dict, topic: str, difficulty: str) -> Dict:
     """Generate an event identification question"""
-    title = facts.get('title', topic)
-    url = facts.get('url', '')
+    title = article.get('title', topic)
+    url = article.get('url', '')
 
-    if not facts.get('events'):
-        return {
-            'error': 'No events found for this topic'
-        }
-
-    event = facts['events'][0]
-    question = f"Jakie wydarzenie opisano: {event[:100]}...?"
-
-    options = [
-        event[:50] + "...",
-        "Bitwa",
-        "Powstanie",
-        "Traktat"
-    ]
-
-    random.shuffle(options)
-    correct_index = 0
-
+    # Return error since we no longer extract events
     return {
-        'question': question,
-        'options': options,
-        'correct_answer': options[correct_index],
-        'correct_index': correct_index,
-        'difficulty': difficulty,
+        'error': 'Event question generation disabled - structured fact extraction removed due to reliability concerns',
         'topic': topic,
         'source_url': url,
-        'question_type': 'event_identification'
+        'suggestion': 'Please use article content to manually identify events or implement a reliable event extraction method'
     }
 
 
