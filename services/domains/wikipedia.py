@@ -6,7 +6,7 @@ Refactored from original wikipedia_client.py to use BaseDomainService
 
 import re
 from typing import List, Dict, Any
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 from services.base import BaseDomainService
 from services.http_client import HTTPClient
@@ -99,7 +99,8 @@ class WikipediaService(BaseDomainService):
         # Extract page title from URL
         # URL format: https://pl.wikipedia.org/wiki/Page_Title
         if '/wiki/' in url:
-            title = url.split('/wiki/')[-1].replace('_', ' ')
+            # Extract title and decode URL encoding to prevent double-encoding
+            title = unquote(url.split('/wiki/')[-1].replace('_', ' '))
         else:
             return {
                 'error': 'Invalid Wikipedia URL format',
@@ -110,7 +111,6 @@ class WikipediaService(BaseDomainService):
         params = {
             'action': 'query',
             'prop': 'extracts|pageprops',
-            'exintro': True,
             'explaintext': True,
             'titles': title,
             'format': 'json',

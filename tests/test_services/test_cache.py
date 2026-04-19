@@ -35,7 +35,7 @@ def test_cache_get_nonexistent(cache):
     assert cache.get("nonexistent") is None
 
 
-def test_cache_miss increments_counter(cache):
+def test_cache_miss_increments_counter(cache):
     """Test that cache miss increments miss counter"""
     cache.get("nonexistent")
     assert cache.misses == 1
