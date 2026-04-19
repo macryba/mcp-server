@@ -1,12 +1,3 @@
 {
-  "mcpServers": {
-    "polish-history": {
-      "type": "stdio",
-      "command": "/home/macryba/mcp-server/.venv/bin/python",
-      "args": ["/home/macryba/mcp-server/server.py"],
-      "env": {
-        "PYTHONUNBUFFERED": "1"
-      }
-    }
-  }
+  "mcpServers": {}
 }

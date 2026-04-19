@@ -124,8 +124,8 @@ The MCP server (`server.py`) exposes **24 specialized tools**:
 # Setup (first time only)
 bash setup.sh
 
-# Start the MCP server
-source venv/bin/activate
+# Start the MCP server (for manual testing only)
+source .venv/bin/activate
 python server.py
 
 # Run tests
@@ -134,6 +134,8 @@ pytest
 # Run tests with coverage
 pytest --cov=services --cov=tools --cov=models --cov=utils
 ```
+
+**IMPORTANT:** MCP server management is now automatic when configured with Claude Code. The manual startup command above is only for testing and development. See "Claude Code Integration" section below for production setup.
 
 ## Configuration
 
@@ -148,13 +150,34 @@ Edit `config.py` to configure:
 
 ### Claude Code Integration
 
-Configure the MCP server in `~/.claude/settings.json`:
+The recommended way to configure the MCP server is using Claude Code's MCP management system:
 
+```bash
+# Add server to user scope (available across all projects)
+claude mcp add --transport stdio --scope user polish-history -- .venv/bin/python server.py
+```
+
+**Server Management:**
+- **Automatic lifecycle:** Claude Code starts/stops the server on-demand
+- **Universal availability:** Works in any project when configured at user scope
+- **No manual startup needed:** Do not run `server.py` manually in production
+- **Status check:** `claude mcp list` to see server status
+- **Management:** `claude mcp get|restart|remove polish-history` for control
+
+**Alternative: Manual configuration** in `~/.claude/settings.json`:
+
+```json
+{
+  "enabledMcpjsonServers": ["polish-history"]
+}
+```
+
+With `.mcp.json` in project root:
 ```json
 {
   "mcpServers": {
     "polish-history": {
-      "command": "/home/macryba/mcp-server/venv/bin/python",
+      "command": "/home/macryba/mcp-server/.venv/bin/python",
       "args": ["/home/macryba/mcp-server/server.py"],
       "env": {
         "PYTHONUNBUFFERED": "1"
@@ -164,25 +187,7 @@ Configure the MCP server in `~/.claude/settings.json`:
 }
 ```
 
-Or using `uv`:
-```json
-{
-  "mcpServers": {
-    "polish-history": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "/home/macryba/mcp-server",
-        "python",
-        "server.py"
-      ]
-    }
-  }
-}
-```
-
-After modifying this file, restart Claude Code for changes to take effect.
+**Note:** User-scope configuration is preferred over project-specific `.mcp.json` files for development tools used across multiple projects.
 
 ## Polish History Optimization
 
@@ -210,13 +215,19 @@ The server is optimized for Polish historical sources:
 **MCP tools not available in Claude Code:**
 ```bash
 # Check if virtual environment exists
-ls -la venv/
+ls -la .venv/
 
 # Verify dependencies installed
-source venv/bin/activate
+source .venv/bin/activate
 pip list | grep -E 'fastmcp|httpx|tenacity'
 
-# Test MCP server directly
+# Check MCP server configuration
+claude mcp list
+
+# Verify specific server status
+claude mcp get polish-history
+
+# Test MCP server directly (for debugging only)
 python server.py
 ```
 
