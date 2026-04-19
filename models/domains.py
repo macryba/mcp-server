@@ -60,6 +60,7 @@ class Domain:
 
     language: str = "pl"
     central_for_ai: bool = False
+    api_documentation_url: str = ""        # URL to API documentation (OpenAPI/Swagger)
 
 
 # Central registry of all Polish history source domains
@@ -219,6 +220,37 @@ DOMAINS: List[Domain] = [
         supports_url_extraction=True,
         language="pl",
     ),
+    Domain(
+        name="Polona",
+        base_url="https://polona.pl",
+        description=(
+            "Cyfrowa biblioteka Biblioteki Narodowej z milionami obiektów: "
+            "zdjęcia, dokumenty, manuskrypty, gazety, mapy i inne źródła pierwotne "
+            "do historii Polski."
+        ),
+        categories={
+            Category.ZRODLA_SWIADECTWA,
+            Category.OGOLNOEDUKACYJNE,
+        },
+        difficulties={Difficulty.MEDIUM, Difficulty.HARD},
+        tags={
+            "polona",
+            "biblioteka_narodowa",
+            "zrodla_pierwotne",
+            "dokumenty",
+            "fotografie",
+            "manuskrypty",
+            "gazety",
+            "mapy",
+            "pierwiastki",
+            "periodyki",
+        },
+        supports_api_search=True,
+        supports_web_scraping=True,
+        supports_url_extraction=True,
+        language="pl",
+        api_documentation_url="https://polona.pl/api/pdn-catalogue/api-docs",
+    ),
 ]
 
 
@@ -233,7 +265,7 @@ class DomainRegistry:
     @classmethod
     def get_available_domains(cls) -> List[Domain]:
         """Get only available domains (currently implemented)"""
-        return [d for d in DOMAINS if d.api_available]
+        return [d for d in DOMAINS if d.supports_api_search]
 
     @classmethod
     def get_central_domains(cls) -> List[Domain]:
@@ -425,6 +457,7 @@ class DomainRegistry:
             "supports_url_extraction": domain.supports_url_extraction,
             "language": domain.language,
             "central_for_ai": domain.central_for_ai,
+            "api_documentation_url": domain.api_documentation_url,
         }
 
     @classmethod

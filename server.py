@@ -34,17 +34,20 @@ async def search_polish_history(query: str, domains: list = None, limit: int = 1
     """
     Search trusted Polish history sources and return matching pages
 
-    Supports multi-domain search across:
-    - Wikipedia (Polish and English)
-    - IPN (Institute of National Remembrance) - coming soon
-    - Dzieje.pl - coming soon
-    - Polona digital library - coming soon
-    - PSB (Polish Biographical Dictionary) - coming soon
-    - PWN Encyclopedia - coming soon
+    Currently implemented domains:
+    - wikipedia (Polish Wikipedia) - ✅ available (API search)
+    - dzieje (Dzieje.pl) - ✅ available (web scraping)
+    - polona (National Library digital collection) - ✅ available (official API)
+    - superkid (SuperKid educational portal) - ✅ available (web scraping, limited)
+    - ipn (Edukacja IPN) - ✅ available (web scraping)
+    - przystanek_historia (IPN Przystanek Historia) - ✅ available (web scraping)
+    - gwo (GWO Historia) - ✅ available (web scraping)
+
+    All planned domains are now implemented!
 
     Args:
         query: Search query string (e.g., "Bolesław III Krzywousty")
-        domains: List of domains to search (empty = all available domains)
+        domains: List of domains to search (None = all implemented domains)
         limit: Maximum number of results per domain (default: 10)
 
     Returns:

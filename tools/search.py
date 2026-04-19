@@ -6,6 +6,12 @@ Provides multi-domain search capabilities across Polish Wikipedia and other Poli
 
 from fastmcp import FastMCP
 from services.domains.wikipedia import WikipediaService
+from services.domains.dzieje import DziejeService
+from services.domains.polona import PolonaService
+from services.domains.superkid import SuperkidService
+from services.domains.ipn import IPNService
+from services.domains.przystanek_historia import PrzystanekHistoriaService
+from services.domains.gwo import GWOService
 from services.http_client import HTTPClient
 from services.cache import get_cache
 from models.domains import DomainRegistry
@@ -23,6 +29,12 @@ _cache = get_cache()
 
 # Initialize domain services (Polish only)
 _wikipedia = WikipediaService(language='pl', http_client=_http_client, cache_service=_cache)
+_dzieje = DziejeService(http_client=_http_client, cache_service=_cache)
+_polona = PolonaService(http_client=_http_client, cache_service=_cache)
+_superkid = SuperkidService(http_client=_http_client, cache_service=_cache)
+_ipn = IPNService(http_client=_http_client, cache_service=_cache)
+_przystanek_historia = PrzystanekHistoriaService(http_client=_http_client, cache_service=_cache)
+_gwo = GWOService(http_client=_http_client, cache_service=_cache)
 
 
 async def search_polish_history(query: str, domains: List[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
@@ -31,7 +43,7 @@ async def search_polish_history(query: str, domains: List[str] = None, limit: in
 
     Args:
         query: Search query string
-        domains: List of domains to search (empty = all available)
+        domains: List of domains to search (None = all implemented domains)
         limit: Maximum number of results per domain
 
     Returns:
@@ -41,17 +53,97 @@ async def search_polish_history(query: str, domains: List[str] = None, limit: in
         return []
 
     results = []
-    domains = domains or ['wikipedia']
 
-    # Search Polish Wikipedia
-    if 'wikipedia' in domains or 'wikipedia_pl' in domains:
+    # Get all implemented domains (both API search and web scraping)
+    # Currently implemented: Wikipedia (API), Dzieje.pl (web scraping), Polona (API), SuperKid (web scraping), IPN (web scraping), Przystanek Historia (web scraping), GWO (web scraping)
+    implemented_domains = {
+        'wikipedia', 'wikipedia_pl',        # Wikipedia - API search
+        'dzieje', 'dzieje_pl',              # Dzieje.pl - web scraping
+        'polona',                           # Polona - API search
+        'superkid', 'superkid_pl',         # SuperKid - web scraping
+        'ipn', 'ipn_pl',                   # IPN - web scraping
+        'przystanek_historia', 'przystanek', # Przystanek Historia - web scraping
+        'gwo', 'gwo_pl'                    # GWO - web scraping
+    }
+
+    logger.info(f"Implemented domains: {implemented_domains}")
+
+    # If no domains specified, search all implemented domains
+    if domains is None:
+        domains = list(implemented_domains)
+        logger.info(f"No domains specified, searching all implemented: {domains}")
+
+    # Filter to only implemented domains
+    domains_to_search = [d for d in domains if d.lower() in implemented_domains]
+
+    if len(domains_to_search) < len(domains):
+        skipped = set(domains) - set(domains_to_search)
+        logger.warning(f"Skipping unimplemented domains: {skipped}")
+
+    # Search Polish Wikipedia (implemented - API search)
+    if 'wikipedia' in domains_to_search or 'wikipedia_pl' in domains_to_search:
         try:
             wiki_results = await _wikipedia._cached_search(query, limit)
             results.extend(wiki_results)
+            logger.info(f"Successfully searched Wikipedia: {len(wiki_results)} results")
         except Exception as e:
             logger.error(f"Error searching Polish Wikipedia: {e}")
 
-    # TODO: Add other domains (IPN, Dzieje, Polona, PSB, PWN) when services are implemented
+    # Search Dzieje.pl (implemented - web scraping)
+    if 'dzieje' in domains_to_search or 'dzieje_pl' in domains_to_search:
+        try:
+            dzieje_results = await _dzieje._cached_search(query, limit)
+            results.extend(dzieje_results)
+            logger.info(f"Successfully searched Dzieje.pl: {len(dzieje_results)} results")
+        except Exception as e:
+            logger.error(f"Error searching Dzieje.pl: {e}")
+
+    # Search Polona (implemented - API search)
+    if 'polona' in domains_to_search:
+        try:
+            polona_results = await _polona._cached_search(query, limit)
+            results.extend(polona_results)
+            logger.info(f"Successfully searched Polona: {len(polona_results)} results")
+        except Exception as e:
+            logger.error(f"Error searching Polona: {e}")
+
+    # Search SuperKid (implemented - web scraping)
+    if 'superkid' in domains_to_search or 'superkid_pl' in domains_to_search:
+        try:
+            superkid_results = await _superkid._cached_search(query, limit)
+            results.extend(superkid_results)
+            logger.info(f"Successfully searched SuperKid: {len(superkid_results)} results")
+        except Exception as e:
+            logger.error(f"Error searching SuperKid: {e}")
+
+    # Search IPN (implemented - web scraping)
+    if 'ipn' in domains_to_search or 'ipn_pl' in domains_to_search:
+        try:
+            ipn_results = await _ipn._cached_search(query, limit)
+            results.extend(ipn_results)
+            logger.info(f"Successfully searched IPN: {len(ipn_results)} results")
+        except Exception as e:
+            logger.error(f"Error searching IPN: {e}")
+
+    # Search Przystanek Historia (implemented - web scraping)
+    if 'przystanek_historia' in domains_to_search or 'przystanek' in domains_to_search:
+        try:
+            przystanek_results = await _przystanek_historia._cached_search(query, limit)
+            results.extend(przystanek_results)
+            logger.info(f"Successfully searched Przystanek Historia: {len(przystanek_results)} results")
+        except Exception as e:
+            logger.error(f"Error searching Przystanek Historia: {e}")
+
+    # Search GWO (implemented - web scraping)
+    if 'gwo' in domains_to_search or 'gwo_pl' in domains_to_search:
+        try:
+            gwo_results = await _gwo._cached_search(query, limit)
+            results.extend(gwo_results)
+            logger.info(f"Successfully searched GWO: {len(gwo_results)} results")
+        except Exception as e:
+            logger.error(f"Error searching GWO: {e}")
+
+    # All domains are now implemented!
 
     return results
 
