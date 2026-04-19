@@ -5,10 +5,12 @@
 ```
 <type>(<scope>): <subject>
 
-<body>
+<body (optional)>
+
+read daily log work-log/YYYY-MM-DD.md item XX for details
 ```
 
-**IMPORTANT:** No footers allowed. Do not include issue numbers, breaking change notices, or co-author tags. Keep commits to subject line only (and body if needed).
+**IMPORTANT:** Always include the daily log footer. Replace `YYYY-MM-DD` with today's date and `XX` with the item number from the daily log.
 
 ## Types
 
@@ -35,7 +37,7 @@
 - Wrap at 72 characters
 - Use bullet points for multiple changes
 - Explain reasoning
-- **Max 10 lines total** (subject + body combined)
+- **Max 5 lines total** (subject + body combined, excluding footer)
 
 ## Examples
 
@@ -43,20 +45,19 @@
 ```
 feat(wikipedia): add full article content extraction
 
-Implement extract_article tool that retrieves complete Wikipedia article
-content including sections and metadata. Handles Polish Wikipedia by default.
+Implement extract_article tool for complete Wikipedia articles with Polish
+support, section parsing, and error handling for missing pages.
 
-- Add extract_article() function in tools/extract.py
-- Implement section parsing and content reconstruction
-- Add error handling for missing pages
+read daily log work-log/2026-04-19.md item 3 for details
 ```
 
 ✅ **Good:**
 ```
 fix: polish character support in Wikipedia API responses
 
-Force UTF-8 encoding in http_client to properly handle Polish characters
-(ą, ć, ę, ł, ń, ó, ś, ź, ż).
+Force UTF-8 encoding in http_client for Polish characters (ą, ć, ę, ł, ń, ó, ś, ź, ż).
+
+read daily log work-log/2026-04-19.md item 9 for details
 ```
 
 ❌ **Bad:**
@@ -74,7 +75,8 @@ refactor: changed the code
 - [ ] Subject ≤72 characters
 - [ ] Imperative mood ("add" not "added")
 - [ ] No period at end
-- [ ] Body included for complex changes
+- [ ] Max 5 lines (subject + body combined)
+- [ ] Daily log footer included with correct date and item number
 - [ ] No typos
 
 ## Language
@@ -89,11 +91,12 @@ refactor: changed the code
 ```bash
 git commit -m "type(scope): subject
 
-- Change 1
-- Change 2
+Brief explanation of changes (max 4 lines)
 
-Reasoning if needed"
+read daily log work-log/YYYY-MM-DD.md item XX for details"
 ```
+
+**Note:** Replace `YYYY-MM-DD` with today's date and `XX` with the item number from your daily log.
 
 ---
 
