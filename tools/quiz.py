@@ -4,7 +4,7 @@ Quiz generation tools for Polish history
 Provides tools to generate quiz questions, validate answers, and extract quiz facts
 """
 
-from tools.search import search_wikipedia_polish, search_historical_figures, search_historical_events
+from tools.search import search_wikipedia, search_historical_figures, search_historical_events
 from tools.extract import extract_facts, extract_article
 from models.quiz import QuizQuestion, QuestionType, DifficultyLevel
 from typing import List, Dict, Any
@@ -30,7 +30,7 @@ async def generate_quiz_question(topic: str, difficulty: str = 'medium', questio
     """
     try:
         # Search for relevant content
-        search_results = await search_wikipedia_polish(topic, max_results=3)
+        search_results = await search_wikipedia(topic, max_results=3)
         results = eval(search_results)
 
         if not results or 'error' in results[0]:
@@ -156,7 +156,7 @@ async def extract_quiz_facts(topic: str, count: int = 10) -> str:
     """
     try:
         # Search for relevant content
-        search_results = await search_wikipedia_polish(topic, max_results=1)
+        search_results = await search_wikipedia(topic, max_results=1)
         results = eval(search_results)
 
         if not results or 'error' in results[0]:

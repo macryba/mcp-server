@@ -190,6 +190,38 @@ async def search_biographies(query: str, profession: str = None) -> str:
         return str({'error': str(e)})
 
 
+@mcp.tool()
+async def list_domains(include_unimplemented: bool = False) -> str:
+    """
+    List all configured domains in the MCP server
+
+    Returns comprehensive information about all historical source domains,
+    including their capabilities, categories, difficulty levels, and what they cover.
+
+    Use this tool first to discover available domains before making search queries.
+
+    Args:
+        include_unimplemented: Include domains that are registered but not yet implemented (default: False)
+
+    Returns:
+        JSON string with domain information including:
+        - name: Domain name
+        - base_url: Base URL
+        - description: What the domain covers
+        - categories: Content categories (ogolnoedukacyjne, popularnonaukowe, szkolne_materialy, biografie_postacie, zrodla_swiadectwa)
+        - difficulties: Difficulty levels (łatwy, średni, trudny)
+        - tags: Relevant tags
+        - capabilities: Search capabilities (api_search, web_scraping, url_extraction)
+        - implementation_status: "implemented" or "planned"
+    """
+    try:
+        results = await search.list_domains(include_unimplemented)
+        return results
+    except Exception as e:
+        logger.error(f"Error in list_domains: {e}")
+        return str({'error': str(e)})
+
+
 # ============================================================================
 # EXTRACT TOOLS
 # ============================================================================

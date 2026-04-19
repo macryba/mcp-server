@@ -393,6 +393,87 @@ async def search_definitions(term: str, domain: str = None) -> str:
         return str({'error': str(e)})
 
 
+async def list_domains(include_unimplemented: bool = False) -> str:
+    """
+    List all configured domains in the MCP server
+
+    Returns comprehensive information about all historical source domains,
+    including their capabilities, categories, difficulty levels, and what they cover.
+
+    Args:
+        include_unimplemented: Include domains that are registered but not yet implemented (default: False)
+
+    Returns:
+        JSON string with domain information including:
+        - name: Domain name
+        - base_url: Base URL
+        - description: What the domain covers
+        - categories: Content categories (e.g., "ogolnoedukacyjne", "popularnonaukowe")
+        - difficulties: Difficulty levels (e.g., "łatwy", "średni", "trudny")
+        - tags: Relevant tags
+        - capabilities: Search capabilities (api_search, web_scraping, url_extraction)
+        - implementation_status: Whether the domain is implemented
+    """
+    try:
+        # Get all domains from registry
+        all_domains = DomainRegistry.get_all_domains()
+
+        # Map domain names to implementation status
+        # Based on what's actually implemented in tools/search.py
+        implemented_domain_map = {
+            'Wikipedia': True,                    # wikipedia_pl - API search
+            'Edukacja IPN': True,                 # ipn - web scraping
+            'Dzieje.pl': True,                    # dzieje - web scraping
+            'Przystanek Historia': True,          # przystanek_historia - web scraping
+            'SuperKid - Historia online': True,   # superkid - web scraping
+            'GWO - Historia': True,               # gwo - web scraping
+            'Polona': True,                       # polona - API search
+        }
+
+        domains_list = []
+        for domain in all_domains:
+            # Check if domain is implemented
+            is_implemented = implemented_domain_map.get(domain.name, False)
+
+            # Skip unimplemented domains if requested
+            if not include_unimplemented and not is_implemented:
+                continue
+
+            domain_info = {
+                'name': domain.name,
+                'base_url': domain.base_url,
+                'description': domain.description,
+                'categories': [c.value for c in domain.categories],
+                'difficulties': [d.value for d in domain.difficulties],
+                'tags': list(domain.tags),
+                'capabilities': {
+                    'api_search': domain.supports_api_search,
+                    'web_scraping': domain.supports_web_scraping,
+                    'url_extraction': domain.supports_url_extraction
+                },
+                'language': domain.language,
+                'central_for_ai': domain.central_for_ai,
+                'api_documentation_url': domain.api_documentation_url,
+                'implementation_status': 'implemented' if is_implemented else 'planned'
+            }
+
+            domains_list.append(domain_info)
+
+        result = {
+            'total_domains': len(domains_list),
+            'implemented_count': sum(1 for d in domains_list if d['implementation_status'] == 'implemented'),
+            'planned_count': sum(1 for d in domains_list if d['implementation_status'] == 'planned'),
+            'domains': domains_list
+        }
+
+        logger.info(f"Listed {len(domains_list)} domains ({result['implemented_count']} implemented, {result['planned_count']} planned)")
+        return str(result)
+
+    except Exception as e:
+        logger.error(f"Error in list_domains: {e}")
+        return str({'error': str(e)})
+
+
 # Cleanup function to close HTTP client
 async def cleanup():
     """Cleanup resources"""
