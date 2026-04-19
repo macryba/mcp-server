@@ -8,6 +8,7 @@ This is the NEW server entry point - replaces wikipedia_mcp_server.py
 
 from fastmcp import FastMCP
 from tools import search, extract, quiz
+from models.domains import DomainRegistry, Difficulty
 import logging
 
 # Configure logging
@@ -58,7 +59,7 @@ async def search_polish_history(query: str, domains: list = None, limit: int = 1
 
 
 @mcp.tool()
-async def search_wikipedia_polish(query: str, max_results: int = 5) -> str:
+async def search_wikipedia(query: str, max_results: int = 5) -> str:
     """
     Search Polish Wikipedia for historical information
 
@@ -75,35 +76,10 @@ async def search_wikipedia_polish(query: str, max_results: int = 5) -> str:
         JSON string with search results including titles, snippets, and URLs
     """
     try:
-        results = await search.search_wikipedia_polish(query, max_results)
+        results = await search.search_wikipedia(query, max_results)
         return results
     except Exception as e:
-        logger.error(f"Error in search_wikipedia_polish: {e}")
-        return str({'error': str(e)})
-
-
-@mcp.tool()
-async def search_wikipedia_english(query: str, max_results: int = 5) -> str:
-    """
-    Search English Wikipedia for additional context
-
-    Use this when you need:
-    - English-language perspective
-    - International context for Polish events
-    - Additional details not in Polish Wikipedia
-
-    Args:
-        query: Search query in English
-        max_results: Maximum number of results to return (1-20)
-
-    Returns:
-        JSON string with search results
-    """
-    try:
-        results = await search.search_wikipedia_english(query, max_results)
-        return results
-    except Exception as e:
-        logger.error(f"Error in search_wikipedia_english: {e}")
+        logger.error(f"Error in search_wikipedia: {e}")
         return str({'error': str(e)})
 
 
@@ -415,19 +391,26 @@ async def server_info() -> str:
     Returns:
         JSON string with server information
     """
+
+    # Get domain information from centralized registry
+    api_search_domains = DomainRegistry.get_domains_with_api_search()
+    web_scraping_domains = DomainRegistry.get_domains_with_web_scraping()
+    url_extraction_domains = DomainRegistry.get_domains_with_url_extraction()
+
     info = {
-        'name': 'Polish History Tools',
+        'name': 'Polskie Narzędzia Historyczne',
         'version': SERVER_VERSION,
-        'description': 'MCP server for Polish history research with multi-domain search, content extraction, and quiz generation',
+        'description': 'Serwer MCP dla polskich badań historycznych z wyszukiwaniem wielodomenowym, ekstrakcją treści i generowaniem quizów',
         'capabilities': {
             'search': [
-                'Multi-domain search',
-                'Wikipedia search (Polish & English)',
-                'Historical figures search',
-                'Historical events search',
-                'Places search',
-                'Primary sources search',
-                'Biographies search'
+                'Wyszukiwanie API (Wikipedia polska)',
+                'Możliwości web scrapingu (w przyszłości)',
+                'Ekstrakcja treści z URL (w przyszłości)',
+                'Wyszukiwanie postaci historycznych',
+                'Wyszukiwanie wydarzeń historycznych',
+                'Wyszukiwanie miejsc',
+                'Wyszukiwanie źródeł pierwotnych',
+                'Wyszukiwanie biografii'
             ],
             'extract': [
                 'Article extraction',
@@ -446,17 +429,16 @@ async def server_info() -> str:
                 'Event identification'
             ]
         },
-        'supported_domains': [
-            'pl.wikipedia.org',
-            'en.wikipedia.org'
-        ],
-        'coming_soon': [
-            'ipn.gov.pl',
-            'dzieje.pl',
-            'polona.pl',
-            'psb.org.pl',
-            'encyklopedia.pwn.pl'
-        ]
+        'domains': {
+            'wyszukiwanie_api': [d.base_url for d in api_search_domains],
+            'web_scraping_obsługiwane': [d.base_url for d in web_scraping_domains],
+            'ekstrakcja_url_obsługiwana': [d.base_url for d in url_extraction_domains],
+        },
+        'poziomy_trudnosci': [d.value for d in Difficulty],
+        'lączna_liczba_domen': len(DomainRegistry.get_all_domains()),
+        'liczba_api_search': len(api_search_domains),
+        'liczba_web_scraping': len(web_scraping_domains),
+        'liczba_url_extraction': len(url_extraction_domains)
     }
 
     return str(info)

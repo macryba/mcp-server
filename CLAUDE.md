@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**IMPORTANT:** This is a **Polish-only service**. All domains, content, and interfaces are in Polish language.
+
 # Expected AI agent behaviour
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
@@ -207,7 +209,7 @@ The server is optimized for Polish historical sources:
 **Trusted domains:**
 - `pl.wikipedia.org`, `en.wikipedia.org`
 - `ipn.gov.pl`, `dzieje.pl`, `polona.pl`
-- `psb.org.pl`, `encyklopedia.pwn.pl`
+- `encyklopedia.pwn.pl`
 - `gov.pl`, `edu.pl`
 
 ## Troubleshooting

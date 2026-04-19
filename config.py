@@ -5,6 +5,7 @@ Configuration management for MCP server
 
 import os
 from typing import List
+from models.domains import get_trusted_domains
 
 
 class Config:
@@ -28,18 +29,8 @@ class Config:
     DEFAULT_SEARCH_LIMIT = 10
     MAX_SEARCH_LIMIT = 100
 
-    # Trusted domains
-    TRUSTED_DOMAINS: List[str] = [
-        'pl.wikipedia.org',
-        'en.wikipedia.org',
-        'ipn.gov.pl',
-        'dzieje.pl',
-        'polona.pl',
-        'psb.org.pl',
-        'encyklopedia.pwn.pl',
-        'gov.pl',
-        'edu.pl'
-    ]
+    # Trusted domains - centralized from models/domains.py
+    TRUSTED_DOMAINS: List[str] = list(get_trusted_domains())
 
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

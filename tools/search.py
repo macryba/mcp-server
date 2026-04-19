@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Search tools for Polish history research
-Provides multi-domain search capabilities across Wikipedia, IPN, Dzieje, Polona, PSB, and PWN
+Provides multi-domain search capabilities across Polish Wikipedia and other Polish historical sources
 """
 
 from fastmcp import FastMCP
 from services.domains.wikipedia import WikipediaService
 from services.http_client import HTTPClient
 from services.cache import get_cache
+from models.domains import DomainRegistry
 from typing import Dict, Any, List
 import logging
 
@@ -20,9 +21,8 @@ logger = logging.getLogger(__name__)
 _http_client = HTTPClient()
 _cache = get_cache()
 
-# Initialize domain services
-_wikipedia_pl = WikipediaService(language='pl', http_client=_http_client, cache_service=_cache)
-_wikipedia_en = WikipediaService(language='en', http_client=_http_client, cache_service=_cache)
+# Initialize domain services (Polish only)
+_wikipedia = WikipediaService(language='pl', http_client=_http_client, cache_service=_cache)
 
 
 async def search_polish_history(query: str, domains: List[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
@@ -41,32 +41,29 @@ async def search_polish_history(query: str, domains: List[str] = None, limit: in
         return []
 
     results = []
-    domains = domains or ['wikipedia_pl']
+    domains = domains or ['wikipedia']
 
-    # Search Wikipedia Polish
-    if 'wikipedia_pl' in domains or 'wikipedia' in domains:
+    # Search Polish Wikipedia
+    if 'wikipedia' in domains or 'wikipedia_pl' in domains:
         try:
-            wiki_results = await _wikipedia_pl._cached_search(query, limit)
+            wiki_results = await _wikipedia._cached_search(query, limit)
             results.extend(wiki_results)
         except Exception as e:
-            logger.error(f"Error searching Wikipedia PL: {e}")
-
-    # Search Wikipedia English
-    if 'wikipedia_en' in domains or 'wikipedia' in domains:
-        try:
-            wiki_results = await _wikipedia_en._cached_search(query, limit)
-            results.extend(wiki_results)
-        except Exception as e:
-            logger.error(f"Error searching Wikipedia EN: {e}")
+            logger.error(f"Error searching Polish Wikipedia: {e}")
 
     # TODO: Add other domains (IPN, Dzieje, Polona, PSB, PWN) when services are implemented
 
     return results
 
 
-async def search_wikipedia_polish(query: str, max_results: int = 5) -> str:
+async def search_wikipedia(query: str, max_results: int = 5) -> str:
     """
     Search Polish Wikipedia for historical information
+
+    Best for:
+    - General Polish history topics
+    - Historical figures (kings, queens, leaders)
+    - Historical events (battles, uprisings, treaties)
 
     Args:
         query: Search query (e.g., "Bolesław III Krzywousty")
@@ -76,29 +73,10 @@ async def search_wikipedia_polish(query: str, max_results: int = 5) -> str:
         JSON string with search results including titles, snippets, and URLs
     """
     try:
-        results = await _wikipedia_pl._cached_search(query, max_results)
+        results = await _wikipedia._cached_search(query, max_results)
         return str(results)  # Return as string for MCP compatibility
     except Exception as e:
-        logger.error(f"Error in search_wikipedia_polish: {e}")
-        return str({'error': str(e)})
-
-
-async def search_wikipedia_english(query: str, max_results: int = 5) -> str:
-    """
-    Search English Wikipedia for additional context
-
-    Args:
-        query: Search query in English
-        max_results: Maximum number of results to return (1-20)
-
-    Returns:
-        JSON string with search results
-    """
-    try:
-        results = await _wikipedia_en._cached_search(query, max_results)
-        return str(results)
-    except Exception as e:
-        logger.error(f"Error in search_wikipedia_english: {e}")
+        logger.error(f"Error in search_wikipedia: {e}")
         return str({'error': str(e)})
 
 
@@ -122,18 +100,15 @@ async def search_historical_figures(query: str, period: str = None) -> str:
         if period:
             enhanced_query += f" {period}"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
 
         # Add context about Polish historical sources
+        suggested_domains = DomainRegistry.get_suggested_domains_for_tool("search_historical_figures")
+
         for result in results:
             if 'error' not in result:
                 result['source_type'] = 'Polish historical figure'
-                result['suggested_domains'] = [
-                    'pl.wikipedia.org',
-                    'ipn.gov.pl',
-                    'dzieje.pl',
-                    'psb.org.pl'
-                ]
+                result['suggested_domains'] = suggested_domains
 
         return str(results)
     except Exception as e:
@@ -161,17 +136,14 @@ async def search_historical_events(query: str, date_range: str = None) -> str:
         if date_range:
             enhanced_query += f" {date_range}"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
+
+        suggested_domains = DomainRegistry.get_suggested_domains_for_tool("search_historical_events")
 
         for result in results:
             if 'error' not in result:
                 result['source_type'] = 'Polish historical event'
-                result['suggested_domains'] = [
-                    'pl.wikipedia.org',
-                    'dzieje.pl',
-                    'ipn.gov.pl',
-                    'encyklopedia.pwn.pl'
-                ]
+                result['suggested_domains'] = suggested_domains
 
         return str(results)
     except Exception as e:
@@ -196,7 +168,7 @@ async def search_historical_places(query: str, region: str = None) -> str:
         if region:
             enhanced_query += f" {region}"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
 
         for result in results:
             if 'error' not in result:
@@ -223,16 +195,14 @@ async def search_primary_sources(query: str, source_type: str = None) -> str:
         # For now, search Wikipedia with primary source keywords
         enhanced_query = f"{query} dokumenty archiwa źródła historyczne"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
+
+        suggested_domains = DomainRegistry.get_suggested_domains_for_tool("search_primary_sources")
 
         for result in results:
             if 'error' not in result:
                 result['source_type'] = 'Primary source'
-                result['suggested_domains'] = [
-                    'polona.pl',
-                    'ipn.gov.pl',
-                    'pl.wikipedia.org'
-                ]
+                result['suggested_domains'] = suggested_domains
 
         return str(results)
     except Exception as e:
@@ -257,15 +227,14 @@ async def search_biographies(query: str, profession: str = None) -> str:
         if profession:
             enhanced_query += f" {profession}"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
+
+        suggested_domains = DomainRegistry.get_suggested_domains_for_tool("search_biographies")
 
         for result in results:
             if 'error' not in result:
                 result['source_type'] = 'Biography'
-                result['suggested_domains'] = [
-                    'psb.org.pl',
-                    'pl.wikipedia.org'
-                ]
+                result['suggested_domains'] = suggested_domains
 
         return str(results)
     except Exception as e:
@@ -290,7 +259,7 @@ async def search_timelines(topic: str, period: str = None) -> str:
         if period:
             enhanced_query += f" {period}"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
 
         for result in results:
             if 'error' not in result:
@@ -316,7 +285,7 @@ async def search_definitions(term: str, domain: str = None) -> str:
     try:
         enhanced_query = f"{term} definicja encyklopedia"
 
-        results = await _wikipedia_pl._cached_search(enhanced_query, 5)
+        results = await _wikipedia._cached_search(enhanced_query, 5)
 
         for result in results:
             if 'error' not in result:

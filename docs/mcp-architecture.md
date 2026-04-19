@@ -499,7 +499,6 @@ TRUSTED_DOMAINS = [
     'ipn.gov.pl',
     'dzieje.pl',
     'polona.pl',
-    'psb.org.pl',
     'encyklopedia.pwn.pl',
     'gov.pl',
     'edu.pl'
