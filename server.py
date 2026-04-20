@@ -7,7 +7,7 @@ This is the NEW server entry point - replaces wikipedia_mcp_server.py
 """
 
 from fastmcp import FastMCP
-from tools import search, extract
+from tools import search, extract, grammar
 from models.domains import DomainRegistry, Difficulty
 import logging
 
@@ -271,6 +271,43 @@ async def extract_article(url: str) -> str:
         logger.error(f"Error in extract_article: {e}")
         return str({'error': str(e)})
 
+
+
+# ============================================================================
+# GRAMMAR TOOLS
+# ============================================================================
+
+@mcp.tool()
+async def check_grammar(text: str, language: str = "pl-PL") -> str:
+    """
+    Check Polish grammar using LanguageTool
+
+    This tool checks text for grammar, spelling, and style errors using
+    the LanguageTool API. Returns detailed error information with suggestions.
+
+    RECOMMENDED: Use this tool to improve Polish text quality by detecting
+    and correcting grammar errors, spelling mistakes, and style issues.
+
+    Best for:
+    - Proofreading Polish texts
+    - Checking grammar in documents
+    - Improving writing quality
+    - Learning correct Polish grammar
+
+    Args:
+        text: Text to check for grammar errors
+        language: Language code (default: pl-PL for Polish)
+                 Examples: pl-PL, en-US, en-GB, de-DE, fr-FR
+
+    Returns:
+        JSON string with grammar errors, suggestions, and language information
+    """
+    try:
+        results = await grammar.check_grammar(text, language)
+        return results
+    except Exception as e:
+        logger.error(f"Error in check_grammar: {e}")
+        return str({'error': str(e)})
 
 
 # ============================================================================

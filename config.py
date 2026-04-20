@@ -39,6 +39,11 @@ class Config:
     # Wikipedia settings
     WIKIPEDIA_DEFAULT_LANGUAGE = 'pl'
 
+    # LanguageTool settings
+    LANGUAGETOOL_SERVER_URL = os.getenv('LANGUAGETOOL_SERVER_URL', 'http://localhost:8082')
+    LANGUAGETOOL_DEFAULT_LANGUAGE = 'pl-PL'
+    LANGUAGETOOL_TIMEOUT = int(os.getenv('LANGUAGETOOL_TIMEOUT', '10'))
+
     @classmethod
     def from_env(cls):
         """Load configuration from environment variables"""
